@@ -1,0 +1,207 @@
+﻿@{
+    ViewData["Title"] = "Sales Details";
+}
+
+<div class="container mt-4 px-0">
+
+    <!-- Toggle Buttons -->
+    <div class="d-flex justify-content-around gap-4 mb-4">
+        <button id="btnPrimary"
+                class="btn btn-lg btn-primary px-5 toggle-btn active">
+            PRIMARY
+        </button>
+
+        <button id="btnRD"
+                class="btn btn-lg btn-primary px-5 toggle-btn">
+            RD
+        </button>
+    </div>
+
+    <!-- Title -->
+    <h4 class="text-center mb-4 mt-5 text-decoration-underline">
+        Sales Summary - Primary
+    </h4>
+
+    <!-- Sales Summary Table -->
+    <div class="table-responsive">
+        <table class="table table-bordered text-center sales-summary-table">
+            <colgroup>
+                <col style="width: 21%;">
+                <col style="width: 21%;">
+                <col style="width: 21%;">
+                <col style="width: 21%;">
+                <col style="width: 16%;">
+            </colgroup>
+
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Sales</th>
+                    <th>Return</th>
+                    <th>NET</th>
+                    <th>View</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <th>Today</th>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td><button class="btn btn-primary btn-sm rounded-pill">View</button></td>
+                </tr>
+                <tr>
+                    <th>Yesterday</th>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td><button class="btn btn-primary btn-sm rounded-pill">View</button></td>
+                </tr>
+                <tr>
+                    <th>This Month</th>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td><button class="btn btn-primary btn-sm rounded-pill">View</button></td>
+                </tr>
+                <tr>
+                    <th>Last Month</th>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td><button class="btn btn-primary btn-sm rounded-pill">View</button></td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+    <!-- Next Section -->
+    <h4 class="text-center mt-5 text-decoration-underline">
+        Product Wise Sale - Primary
+    </h4>
+
+    <div class="row mt-4">
+        <div class="col-12 col-lg-6 mb-3">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center px-4">
+                    <div>Item-Wise Sale</div>
+                    <div class="date-input-wrapper">
+                        <input type="date" class="form-control form-control-sm shadow-sm" />
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="inventoryChart" height="180"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Second Section -->
+    <h4 class="text-center mt-5 text-decoration-underline">
+        Today / Yesterday Sales - Primary
+    </h4>
+
+    <div class="row mt-4">
+        <div class="col-12 col-lg-6 mb-3">
+            <div class="card">
+                <div class="card-header">Today / Yesterday Sales</div>
+                <div class="card-body">
+                    <canvas id="dayWiseChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const buttons = document.querySelectorAll('.toggle-btn');
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+
+
+    //PIE-CHART
+    const inventoryCtx = document.getElementById('inventoryChart').getContext('2d');
+    new Chart(inventoryCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Item A', 'Item B', 'Item C', 'Item D', 'Item E', 'Item F', 'Item G'],
+            datasets: [{
+                label: 'Items Sold',
+                data: [150, 240, 95, 56, 102, 99, 140],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(90, 192, 132, 0.6)',
+                    'rgba(75, 132, 192, 0.5)',
+                    'rgba(80, 192, 192, 0.5)',
+                    'rgba(255, 206, 192, 0.5)'
+                ]
+            }]
+        }
+    });
+
+    //LINE-CHART
+    const ctx = document.getElementById('dayWiseChart').getContext('2d');
+
+    const dayWiseChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['9 AM', '11 AM', '1 PM', '3 PM', '5 PM', '7 PM'],
+            datasets: [
+                {
+                    label: 'Today',
+                    data: [12000, 18000, 25000, 19000, 32000, 50000],
+                    borderWidth: 3,
+                    tension: 0.4,
+                    pointRadius: 4
+                },
+                {
+                    label: 'Yesterday',
+                    data: [10000, 15000, 21000, 28000, 35000, 42000],
+                    borderWidth: 3,
+                    tension: 0.4,
+                    pointRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return context.dataset.label + ': LKR ' +
+                                   context.parsed.y.toLocaleString();
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        callback: function (value) {
+                            return 'LKR ' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+
+
