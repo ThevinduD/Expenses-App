@@ -46,28 +46,28 @@
             <tbody>
                 <tr>
                     <th>Today</th>
-                    <td>-</td>
+                    <td>@Model.TodaySales.ToString("N0")</td>
                     <td>-</td>
                     <td>-</td>
                     <td><button class="btn btn-primary btn-sm rounded-pill">View</button></td>
                 </tr>
                 <tr>
                     <th>Yesterday</th>
-                    <td>-</td>
+                    <td>@Model.YesterdaySales.ToString("N0")</td>
                     <td>-</td>
                     <td>-</td>
                     <td><button class="btn btn-primary btn-sm rounded-pill">View</button></td>
                 </tr>
                 <tr>
                     <th>This Month</th>
-                    <td>-</td>
+                    <td>@Model.ThisMonthSales.ToString("N0")</td>
                     <td>-</td>
                     <td>-</td>
                     <td><button class="btn btn-primary btn-sm rounded-pill">View</button></td>
                 </tr>
                 <tr>
                     <th>Last Month</th>
-                    <td>-</td>
+                    <td>@Model.LastMonthSales.ToString("N0")</td>
                     <td>-</td>
                     <td>-</td>
                     <td><button class="btn btn-primary btn-sm rounded-pill">View</button></td>

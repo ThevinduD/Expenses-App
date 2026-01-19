@@ -29,7 +29,7 @@ namespace MIS_DEMO.Controllers
 
             var model = new DashboardViewModel();
 
-            //var today = new DateTime(2021, 7, 31);
+            var today = new DateTime(2025, 11, 30);
             //var today = DateTime.Today;
 
             if (userType == "REP")
@@ -37,15 +37,10 @@ namespace MIS_DEMO.Controllers
                 model.TodayTotalSales = _context.VW_SALES_FACT
                     .AsNoTracking()
                     .Where(x =>
-                        x.SalesRepCode == salesRepCode)
+                        x.SalesRepCode == salesRepCode &&
+                        x.RefDate >= today &&
+                        x.RefDate < today.AddDays(1))
                     .Sum(x => (decimal?)x.LineTotal) ?? 0;
-                //model.TodayTotalSales = _context.VW_SALES_FACT
-                //    .AsNoTracking()
-                //    .Where(x =>
-                //        x.SalesRepCode == salesRepCode &&
-                //        x.RefDate >= today &&
-                //        x.RefDate < today.AddDays(1))
-                //    .Sum(x => (decimal?)x.LineTotal) ?? 0;
             }
 
             else if (userType == "ASM")
@@ -92,7 +87,9 @@ namespace MIS_DEMO.Controllers
                     model.TodayTotalSales = _context.VW_SALES_FACT
                         .AsNoTracking()
                         .Where(
-                            x => allRepCodes.Contains(x.SalesRepCode))
+                            x => allRepCodes.Contains(x.SalesRepCode) &&
+                            x.RefDate >= today &&
+                            x.RefDate < today.AddDays(1))
                         .Sum(x => (decimal?)x.LineTotal) ?? 0;
                 }
                 else
@@ -114,7 +111,9 @@ namespace MIS_DEMO.Controllers
                     model.TodayTotalSales = _context.VW_SALES_FACT
                         .AsNoTracking()
                         .Where(
-                            x => repCodes.Contains(x.SalesRepCode))
+                            x => repCodes.Contains(x.SalesRepCode) &&
+                            x.RefDate >= today &&
+                            x.RefDate < today.AddDays(1))
                         .Sum(x => (decimal?)x.LineTotal) ?? 0;
                 }
 
