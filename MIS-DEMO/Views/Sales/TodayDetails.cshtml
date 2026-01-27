@@ -1,0 +1,138 @@
+﻿@model MIS_DEMO.Models.ViewModels.TodaySalesDetailsViewModel
+
+@{
+    ViewData["Title"] = "Today Sales Details";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="fw-bold mb-0">@ViewBag.PeriodTitle</h4>
+        <small class="text-muted">@ViewBag.PeriodRange</small>
+
+    </div>
+
+    <a asp-controller="Sales" asp-action="Details" class="btn btn-outline-secondary btn-sm">
+        Back
+    </a>
+</div>
+
+<!-- Totals strip -->
+<div class="row g-3 mb-3">
+    <div class="col-12 col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-muted fw-semibold">Sales Total</div>
+                <div class="fs-4 fw-bold">@Model.SalesTotal.ToString("N0")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-muted fw-semibold">Return Total</div>
+                <div class="fs-4 fw-bold">@Model.ReturnTotal.ToString("N0")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-muted fw-semibold">Net Total</div>
+                <div class="fs-4 fw-bold">@Model.NetTotal.ToString("N0")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SALES TABLE -->
+<h5 class="fw-bold mt-4 mb-2">Sales (Item-wise)</h5>
+<div class="card mb-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="min-width:220px;">Item</th>
+                        <th class="text-end" style="width:90px;">Qty</th>
+                        <th class="text-end" style="min-width:140px;">Line Total</th>
+                        <th style="min-width:120px;">Rep</th>
+                        <th style="min-width:180px;">Customer</th>
+                        <th style="min-width:140px;">Invoice</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.SalesLines.Any())
+                    {
+                        <tr><td colspan="8" class="text-center py-4 text-muted">No sales found.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var r in Model.SalesLines)
+                        {
+                            <tr>
+                                <td>@r.Description</td>
+                                <td class="text-end">@r.Qty.ToString("N0")</td>
+                                <td class="text-end fw-bold">@r.LineTotal.ToString("N0")</td>
+                                <td>@r.SalesRepCode</td>
+                                <td>@r.CusName</td>
+                                <td>
+                                    @r.InvoDocNo
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- RETURNS TABLE -->
+<h5 class="fw-bold mt-4 mb-2">Returns (Item-wise)</h5>
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="min-width:110px;">Item Code</th>
+                        <th style="min-width:220px;">Item</th>
+                        <th class="text-end" style="width:90px;">Qty</th>
+                        <th class="text-end" style="min-width:140px;">Line Total</th>
+                        <th style="min-width:180px;">Supplier</th>
+                        <th style="min-width:120px;">Rep</th>
+                        <th style="min-width:180px;">Customer</th>
+                        <th style="min-width:140px;">Return/Invoice</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.ReturnLines.Any())
+                    {
+                        <tr><td colspan="8" class="text-center py-4 text-muted">No returns found.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var r in Model.ReturnLines)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@r.ItemCode</td>
+                                <td>@r.Description</td>
+                                <td class="text-end">@r.Qty.ToString("N0")</td>
+                                <td class="text-end fw-bold">@r.LineTotal.ToString("N0")</td>
+                                <td>@r.SupName</td>
+                                <td>@r.SalesRepCode</td>
+                                <td>@r.CusName</td>
+                                <td>
+                                    <div class="small">
+                                        <div class="fw-semibold">RTN: @r.RtnDocNo</div>
+                                        <div class="text-muted">INV: @r.InvoDocNo</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

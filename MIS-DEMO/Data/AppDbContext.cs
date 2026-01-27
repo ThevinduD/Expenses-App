@@ -20,6 +20,7 @@ namespace MIS_DEMO.Data
 
         public DbSet<UserRepMap> WKF_USER_REP_MAP { get; set; }
         public DbSet<SalesFact> VW_SALES_FACT { get; set; }
+        public DbSet<VwSalesReturnFact> VW_SALES_RETURN_FACT { get; set; }
         public DbSet<WKF_MAP_REP_ASM> WKF_MAP_REP_ASM { get; set; }
         public DbSet<WKF_MAP_SM_ASM> WKF_MAP_SM_ASM { get; set; }
 

@@ -47,30 +47,67 @@
                 <tr>
                     <th>Today</th>
                     <td>@Model.TodaySales.ToString("N0")</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td><button class="btn btn-primary btn-sm rounded-pill">View</button></td>
+                    <td>@Model.TodayReturns.ToString("N0")</td>
+                    <td class="fw-bold">
+                        @Model.TodayNet.ToString("N0")
+                    </td>
+                    <td>
+                        <a asp-controller="Sales"
+                           asp-action="PeriodDetails"
+                           asp-route-period="today"
+                           class="mis-view-btn">
+                            View
+                        </a>
+                    </td>
                 </tr>
                 <tr>
                     <th>Yesterday</th>
                     <td>@Model.YesterdaySales.ToString("N0")</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td><button class="btn btn-primary btn-sm rounded-pill">View</button></td>
+                    <td>@Model.YesterdayReturns.ToString("N0")</td>
+                    <td class="fw-bold">
+                        @Model.YesterdayNet.ToString("N0")
+                    </td>
+                    <td>
+                        <a asp-controller="Sales"
+                           asp-action="PeriodDetails"
+                           asp-route-period="yesterday"
+                           class="mis-view-btn">
+                            View
+                        </a>
+                    </td>
+
                 </tr>
                 <tr>
                     <th>This Month</th>
                     <td>@Model.ThisMonthSales.ToString("N0")</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td><button class="btn btn-primary btn-sm rounded-pill">View</button></td>
+                    <td>@Model.ThisMonthReturns.ToString("N0")</td>
+                    <td class="fw-bold">
+                        @Model.ThisMonthNet.ToString("N0")
+                    </td>
+                    <td>
+                        <a asp-controller="Sales"
+                           asp-action="PeriodDetails"
+                           asp-route-period="thismonth"
+                           class="mis-view-btn">
+                            View
+                        </a>
+                    </td>
                 </tr>
                 <tr>
                     <th>Last Month</th>
                     <td>@Model.LastMonthSales.ToString("N0")</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td><button class="btn btn-primary btn-sm rounded-pill">View</button></td>
+                    <td>@Model.LastMonthReturns.ToString("N0")</td>
+                    <td class="fw-bold">
+                        @Model.LastMonthNet.ToString("N0")
+                    </td>
+                    <td>
+                        <a asp-controller="Sales"
+                           asp-action="PeriodDetails"
+                           asp-route-period="lastmonth"
+                           class="mis-view-btn">
+                            View
+                        </a>
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -85,14 +122,49 @@
     <div class="row mt-4">
         <div class="col-12 col-lg-6 mb-3">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center px-4">
-                    <div>Item-Wise Sale</div>
-                    <div class="date-input-wrapper">
-                        <input type="date" class="form-control form-control-sm shadow-sm" />
+                <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2 px-2">
+                    <!-- Period buttons -->
+                    <div class="d-flex flex-wrap justify-content-between gap-1 w-100" aria-label="Quick ranges">
+                        <button type="button" class="btn btn-sm btn-success period-btn active" data-period="today">
+                            Today
+                        </button>
+                        <button type="button" class="btn btn-sm btn-success period-btn" data-period="yesterday">
+                            Yesterday
+                        </button>
+                        <button type="button" class="btn btn-sm btn-success period-btn" data-period="thismonth">
+                            This-M
+                        </button>
+                        <button type="button" class="btn btn-sm btn-success period-btn" data-period="lastmonth">
+                            Last-M
+                        </button>
+                    </div>
+
+
+                    <!-- Filters -->
+                    <div class="d-flex align-items-start gap-3 flex-wrap mt-1">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted small">From</span>
+                            <input id="salesFrom" type="date" class="form-control form-control-sm shadow-sm" />
+                        </div>
+
+                        <div class="d-flex flex-wrap justify-content-between w-100">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="text-muted small">To</span>
+                                <input id="salesTo" type="date" class="form-control form-control-sm shadow-sm" />
+                            </div>
+
+                            <select id="metricSelect"
+                                    class="form-select form-select-sm shadow-sm"
+                                    style="width: 100px;">
+                                <option value="value" selected>Value</option>
+                                <option value="qty">Qty</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
+
                 <div class="card-body">
-                    <canvas id="inventoryChart" height="180"></canvas>
+                    <canvas id="inventoryChart" height="200"></canvas>
                 </div>
             </div>
         </div>
@@ -117,7 +189,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
+
     const buttons = document.querySelectorAll('.toggle-btn');
 
     buttons.forEach(btn => {
@@ -129,26 +203,117 @@
 
 
     //PIE-CHART
-    const inventoryCtx = document.getElementById('inventoryChart').getContext('2d');
-    new Chart(inventoryCtx, {
-        type: 'pie',
-        data: {
-            labels: ['Item A', 'Item B', 'Item C', 'Item D', 'Item E', 'Item F', 'Item G'],
-            datasets: [{
-                label: 'Items Sold',
-                data: [150, 240, 95, 56, 102, 99, 140],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.6)',
-                    'rgba(255, 206, 86, 0.6)',
-                    'rgba(75, 192, 192, 0.6)',
-                    'rgba(90, 192, 132, 0.6)',
-                    'rgba(75, 132, 192, 0.5)',
-                    'rgba(80, 192, 192, 0.5)',
-                    'rgba(255, 206, 192, 0.5)'
-                ]
-            }]
+    let inventoryChart;
+
+    function formatDateYYYYMMDD(d) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    async function loadProductWiseChart(params) {
+        const qs = new URLSearchParams(params);
+        const resp = await fetch(`/Sales/ProductWiseData?${qs.toString()}`);
+        if (!resp.ok) return;
+
+        const data = await resp.json();
+        const ctx = document.getElementById('inventoryChart').getContext('2d');
+
+        if (inventoryChart) inventoryChart.destroy();
+
+        inventoryChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: params.metric === "qty" ? "Qty" : "Value",
+                    data: data.values
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const value = context.raw || 0;
+                                if (params.metric === "qty") {
+                                    return `${context.label}: ${Number(value).toLocaleString()} qty`;
+                                }
+                                return `${context.label}: ${Number(value).toLocaleString()} LKR`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    const fromInput = document.getElementById("salesFrom");
+    const toInput = document.getElementById("salesTo");
+    const metricSelect = document.getElementById("metricSelect");
+    const periodButtons = document.querySelectorAll(".period-btn");
+
+    const devToday = new Date("2025-11-20T00:00:00");
+
+    function setActiveButton(period) {
+        periodButtons.forEach(b => b.classList.toggle("active", b.dataset.period === period));
+    }
+
+    function setRangeForPeriod(period) {
+        let fromDate = new Date(devToday);
+        let toDate = new Date(devToday);
+
+        if (period === "yesterday") {
+            fromDate.setDate(fromDate.getDate() - 1);
+            toDate = new Date(fromDate);
+        } else if (period === "thismonth") {
+            fromDate = new Date(devToday.getFullYear(), devToday.getMonth(), 1);
+            toDate = new Date(devToday.getFullYear(), devToday.getMonth() + 1, 0); // last day
+        } else if (period === "lastmonth") {
+            fromDate = new Date(devToday.getFullYear(), devToday.getMonth() - 1, 1);
+            toDate = new Date(devToday.getFullYear(), devToday.getMonth(), 0);
+        } else {
+            fromDate = new Date(devToday);
+            toDate = new Date(devToday);
         }
+
+        fromInput.value = formatDateYYYYMMDD(fromDate);
+        toInput.value = formatDateYYYYMMDD(toDate);
+    }
+
+    function loadByCurrentInputs(periodFallback = "today") {
+        const metric = metricSelect.value;
+        const from = fromInput.value;
+        const to = toInput.value;
+
+        if (from && to) {
+            loadProductWiseChart({ from, to, metric });
+            return;
+        }
+
+        loadProductWiseChart({ period: periodFallback, metric });
+    }
+
+    setActiveButton("today");
+    setRangeForPeriod("today");
+    loadByCurrentInputs("today");
+
+    periodButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const period = btn.dataset.period;
+            setActiveButton(period);
+            setRangeForPeriod(period);
+            loadByCurrentInputs(period);
+        });
     });
+
+    fromInput.addEventListener("change", () => loadByCurrentInputs());
+    toInput.addEventListener("change", () => loadByCurrentInputs());
+    metricSelect.addEventListener("change", () => loadByCurrentInputs());
+
 
     //LINE-CHART
     const ctx = document.getElementById('dayWiseChart').getContext('2d');

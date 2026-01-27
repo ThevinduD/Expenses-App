@@ -43,11 +43,22 @@ namespace MIS_DEMO.Services
                         .Select(x => x.UserNameASM)
                         .ToList();
 
-                    // 2. Get REP codes under ASMs
-                    repCodes = _context.WKF_MAP_REP_ASM
+                    // 2. ASM own SalesRepCodes
+                    var asmRepCodes = _context.WKF_USER_REP_MAP
                         .AsNoTracking()
                         .Where(x => asmUserNames.Contains(x.UserName))
                         .Select(x => x.SalesRepCode)
+                        .ToList();
+
+                    // 3. REP SalesRepCodes under ASMs
+                    var repRepCodes = _context.WKF_MAP_REP_ASM
+                        .AsNoTracking()
+                        .Where(x => asmUserNames.Contains(x.UserName))
+                        .Select(x => x.SalesRepCode)
+                        .ToList();
+
+                    repCodes = asmRepCodes
+                        .Union(repRepCodes)
                         .ToList();
                 }
                 else
