@@ -6,31 +6,142 @@
 
 <!-- KPI Cards -->
 <div class="row mt-4">
-    <div class="col-12 col-sm-6 col-lg-3 mb-3">
+    <div class="col-12 col-sm-6 col-lg-4 mb-3">
         <div class="card text-white bg-primary h-100">
             <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title">Today Total Sales - Primary</h5>
-                    <p class="card-text kpi-number mb-0">
-                        @Model.TodayTotalSales.ToString("N0")
+                <div class="w-100">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex flex-column">
+                            <h5 class="card-title">Today Sales/Returns</h5>
+                            <h5 class="card-title">Primary</h5>
+                        </div>
+                        <a asp-controller="Sales"
+                           asp-action="Details"
+                           class="btn btn-sm rounded-2 bg-white text-primary"
+                           style="font-size: 1.2rem; font-weight: 700; text-decoration:none;">
+                            View
+                        </a>
+                    </div>
+                    <p class="mb-0">
+                        <span class="kpi-currency text-white">Sales - </span>
+                        <span class="card-text kpi-number">@Model.TodayTotalSales.ToString("N0")</span>
                         <span class="kpi-currency">LKR</span>
                     </p>
-                </div>
-
-                <div class="px-4">
-                    <a asp-controller="Sales"
-                       asp-action="Details"
-                       class="text-white"
-                       style="font-size: 1.3rem; font-weight: 600;">
-                        View
-                    </a>
+                    <p class="mb-0">
+                        <span class="kpi-currency fw-bold" style="color: #FB7185;">Returns - </span>
+                        <span class="card-text kpi-number">@Model.TodayTotalReturns.ToString("N0")</span>
+                        <span class="kpi-currency">LKR</span>
+                    </p>
+                    <p class="mb-0">
+                        <span class="kpi-currency text-warning fw-bold">Net - </span>
+                        <span class="card-text kpi-number">@Model.TodayNetSales.ToString("N0")</span>
+                        <span class="kpi-currency">LKR</span>
+                    </p>
                 </div>
             </div>
 
         </div>
     </div>
 
-    <div class="col-12 col-sm-6 col-lg-3 mb-3">
+    <div class="col-12 col-sm-6 col-lg-4 mb-3">
+        <div class="card text-white h-100" style="background-color:#343a40;">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div class="w-100">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex flex-column">
+                            <h5 class="card-title">Non Delivered Inv</h5>
+                            <h5 class="card-title">Primary</h5>
+                        </div>
+                        <a asp-controller="NonDelivered"
+                           asp-action="Invoices"
+                           class="btn btn-sm rounded-2 bg-white"
+                           style="font-size: 1.2rem; font-weight: 700; text-decoration:none; color:#343a40;">
+                            View
+                        </a>
+                    </div>
+                    
+                    <div class="kpi-container">
+                        <h5>Un. 45: </h5>
+                        <p class="kpi-number">@Model.NonDeliveredUnder45.ToString("N0")</p>
+                        <span class="kpi-currency"> LKR</span>
+                    </div>
+
+                    <div class="kpi-container">
+                        <h5 class="text-warning fw-bold">Ov. 45: </h5>
+                        <p class="kpi-number">@Model.NonDeliveredOver45.ToString("N0")</p>
+                        <span class="kpi-currency"> LKR</span>
+                    </div>
+                </div>
+
+
+                @* <div class="px-4">
+                    <a asp-controller="Sales"
+                       asp-action="Details"
+                       class="text-white"
+                       style="font-size: 1.3rem; font-weight: 600;">
+                        View
+                    </a>
+                </div> *@
+            </div>
+
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-lg-4 mb-3">
+        <div class="card shadow-sm bg-teal text-white">
+            <div class="card-body py-3 px-2 text-center">
+                <div class="fw-bold fs-4 mb-2">Team Wise Sale</div>
+
+                <table class="table table-borderless table-sm mb-0 mx-auto text-white" style="max-width:420px;">
+                    <tbody>
+                        <tr>
+                            <td class="fw-bold text-start text-warning" style="width:70px; color: var(--bs-warning) !important;">Team</td>
+                            <td class="fw-bold text-end text-warning" style="width:160px; color: var(--bs-warning) !important;">This Month</td>
+                            <td class="fw-bold text-end text-warning" style="width:160px; color: var(--bs-warning) !important;">Last Month</td>
+                            <td class="fw-bold text-end text-warning" style="width:70px; color: var(--bs-warning) !important;">Rate</td>
+                        </tr>
+                        @foreach (var t in Model.TeamWiseSales)
+                        {
+                            <tr>
+                                <td class="fw-bold text-start" style="width:70px;">
+                                    <a asp-controller="Sales"
+                                       asp-action="TeamMonthDetails"
+                                       asp-route-locShort="@t.LocShort"
+                                       class="text-white text-decoration-none">
+                                        @t.LocShort
+                                    </a>
+                                </td>
+                                <td class="fw-bold text-end" style="width:160px;">@t.ThisMonth.ToString("N0")</td>
+                                <td class="fw-bold text-end" style="width:160px;">@t.LastMonth.ToString("N0")</td>
+                                <td class="text-end text-warning" style="width:80px; color: var(--bs-warning) !important;">
+                                    @t.RatePercent.ToString("0.0")%
+                                </td>
+                            </tr>
+                        }
+                        <tr class="border-top">
+                            <td class="fw-bold text-start text-warning" style="color: var(--bs-warning) !important;">TOTAL</td>
+                            <td class="fw-bold text-end">@Model.TeamWiseThisMonthTotal.ToString("N0")</td>
+                            <td class="fw-bold text-end">@Model.TeamWiseLastMonthTotal.ToString("N0")</td>
+                            <td class="text-end text-warning" style="color: var(--bs-warning) !important;">
+                                @{
+                                    decimal rate =
+                                    Model.TeamWiseLastMonthTotal <= 0
+                                    ? (Model.TeamWiseThisMonthTotal > 0 ? 100 : 0)
+                                    : Math.Round((Model.TeamWiseThisMonthTotal / Model.TeamWiseLastMonthTotal) * 100, 1);
+                                }
+                                @rate.ToString("0.0")%
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="col-12 col-sm-6 col-lg-4 mb-3">
         <div class="card text-white h-100" style="background-color: #0d3b66">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
@@ -55,12 +166,14 @@
     </div>
 
 
-    <div class="col-12 col-sm-6 col-lg-3 mb-3">
+    <div class="col-12 col-sm-6 col-lg-4 mb-3">
         <div class="card text-white bg-success h-100">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
                     <h5 class="card-title">Stock Value - Primary</h5>
-                    <p class="card-text kpi-number">6,554,202 <span class="kpi-currency">LKR</span></p>
+                    <p class="card-text kpi-number">
+                        <span class="kpi-currency">LKR</span>
+                    </p>
                 </div>
 
                 <div class="px-4">
@@ -75,7 +188,7 @@
         </div>
     </div>
 
-    <div class="col-12 col-sm-6 col-lg-3 mb-3">
+    <div class="col-12 col-sm-6 col-lg-4 mb-3">
         <div class="card text-white h-100" style="background-color: #0f3f22;">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
@@ -96,7 +209,7 @@
     </div>
 
 
-    <div class="col-12 col-sm-6 col-lg-3 mb-3">
+    @* <div class="col-12 col-sm-6 col-lg-3 mb-3">
         <div class="card text-white h-100" style="background-color: #FF6B00;">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
@@ -114,62 +227,6 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> *@
 
 </div>
-
-
-<!-- Charts Section -->
-@* <div class="row mt-4">
-    <div class="col-12 col-lg-6 mb-3">
-        <div class="card">
-            <div class="card-header">Sales by Medicine</div>
-            <div class="card-body">
-                <canvas id="salesChart" height="200"></canvas>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-lg-6 mb-3">
-        <div class="card">
-            <div class="card-header">Inventory by Warehouse</div>
-            <div class="card-body">
-                <canvas id="inventoryChart" height="200"></canvas>
-            </div>
-        </div>
-    </div>
-</div> *@
-
-
-<!-- Optional Chart Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    const salesCtx = document.getElementById('salesChart').getContext('2d');
-    new Chart(salesCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Paracetamol', 'Amoxicillin', 'Ibuprofen', 'Vitamin C'],
-            datasets: [{
-                label: 'Units Sold',
-                data: [120, 90, 75, 60],
-                backgroundColor: 'rgba(54, 162, 235, 0.6)'
-            }]
-        }
-    });
-
-    const inventoryCtx = document.getElementById('inventoryChart').getContext('2d');
-    new Chart(inventoryCtx, {
-        type: 'pie',
-        data: {
-            labels: ['Warehouse A', 'Warehouse B', 'Warehouse C'],
-            datasets: [{
-                label: 'Stock Quantity',
-                data: [150, 240, 95],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.6)',
-                    'rgba(255, 206, 86, 0.6)',
-                    'rgba(75, 192, 192, 0.6)'
-                ]
-            }]
-        }
-    });
-</script>

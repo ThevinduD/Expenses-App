@@ -16,6 +16,7 @@ namespace MIS_DEMO.Models
         public string ItemCode { get; set; }
         public string Description { get; set; }
         public string Pat_Name { get; set; }
+        public string? LocShort { get; set; }
         public decimal Qty { get; set; }
         public decimal ReturnedPrice { get; set; }
         public decimal LineTotal { get; set; }

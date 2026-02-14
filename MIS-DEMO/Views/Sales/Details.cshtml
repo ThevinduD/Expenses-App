@@ -150,20 +150,24 @@
                         </button>
                     </div>
 
-
                     <!-- Filters -->
-                    <div class="d-flex align-items-start gap-3 flex-wrap mt-1">
-                        <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-start gap-3 flex-wrap mt-2 w-100">
+                        <div class="d-flex align-items-center justify-content-between w-50">
                             <span class="text-muted small">From</span>
-                            <input id="salesFrom" type="date" class="form-control form-control-sm shadow-sm" />
+                            <input id="salesFrom" type="date"
+                                   class="form-control form-control-sm shadow-sm"
+                                   style="width: 130px;" />
                         </div>
 
-                        <div class="d-flex flex-wrap justify-content-between w-100">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="text-muted small">To</span>
-                                <input id="salesTo" type="date" class="form-control form-control-sm shadow-sm" />
-                            </div>
+                        <div class="d-flex align-items-center justify-content-between w-50">
+                            <span class="text-muted small">To</span>
+                            <input id="salesTo" type="date"
+                                   class="form-control form-control-sm shadow-sm"
+                                   style="width: 130px;" />
+                        </div>
 
+                        <!-- THIS is the key -->
+                        <div class="ms-auto">
                             <select id="metricSelect"
                                     class="form-select form-select-sm shadow-sm"
                                     style="width: 100px;">
@@ -175,7 +179,7 @@
                 </div>
 
                 <div class="card-body">
-                    <canvas id="inventoryChart" height="200"></canvas>
+                    <canvas id="inventoryChart" height="250"></canvas>
                 </div>
             </div>
         </div>
@@ -191,7 +195,7 @@
             <div class="card">
                 <div class="card-header">Today / Yesterday Sales</div>
                 <div class="card-body">
-                    <canvas id="dayWiseChart" height="250"></canvas>
+                    <canvas id="dayWiseChart" height="300"></canvas>
                 </div>
             </div>
         </div>
@@ -202,182 +206,175 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+    document.addEventListener("DOMContentLoaded", () => {
 
-    const buttons = document.querySelectorAll('.toggle-btn');
+      // ---------- URLs (IIS safe) ----------
+      const productWiseUrl = '@Url.Action("ProductWiseData", "Sales")';
+      const dayWiseUrl = '@Url.Action("DayWiseSalesData", "Sales")';
 
-    buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            buttons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        });
-    });
+      // ---------- helpers ----------
+      const devToday = new Date("@ViewBag.TodayIso");
 
-
-    //PIE-CHART
-    let inventoryChart;
-
-    function formatDateYYYYMMDD(d) {
+      function formatDateYYYYMMDD(d) {
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
-    }
+      }
 
-    async function loadProductWiseChart(params) {
-        const qs = new URLSearchParams(params);
-        const resp = await fetch(`/Sales/ProductWiseData?${qs.toString()}`);
-        if (!resp.ok) return;
+      // ---------- PIE ----------
+      let inventoryChart;
 
-        const data = await resp.json();
-        const ctx = document.getElementById('inventoryChart').getContext('2d');
+      async function loadProductWiseChart(params) {
+        try {
+          const qs = new URLSearchParams(params);
+          const resp = await fetch(`${productWiseUrl}?${qs.toString()}`, { cache: 'no-store' });
+          if (!resp.ok) return;
 
-        if (inventoryChart) inventoryChart.destroy();
+          const data = await resp.json();
+          const ctx = document.getElementById('inventoryChart')?.getContext('2d');
+          if (!ctx) return;
 
-        inventoryChart = new Chart(ctx, {
+          if (inventoryChart) inventoryChart.destroy();
+
+          inventoryChart = new Chart(ctx, {
             type: 'pie',
             data: {
-                labels: data.labels,
-                datasets: [{
-                    label: params.metric === "qty" ? "Qty" : "Value",
-                    data: data.values
-                }]
+              labels: data.labels || [],
+              datasets: [{
+                label: params.metric === "qty" ? "Qty" : "Value",
+                data: data.values || []
+              }]
             },
             options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                const value = context.raw || 0;
-                                if (params.metric === "qty") {
-                                    return `${context.label}: ${Number(value).toLocaleString()} qty`;
-                                }
-                                return `${context.label}: ${Number(value).toLocaleString()} LKR`;
-                            }
-                        }
+              responsive: true,
+              plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                  callbacks: {
+                    label: function (context) {
+                      const value = context.raw || 0;
+                      if (params.metric === "qty") {
+                        return `${context.label}: ${Number(value).toLocaleString()} qty`;
+                      }
+                      return `${context.label}: ${Number(value).toLocaleString()} LKR`;
                     }
+                  }
                 }
+              }
             }
-        });
-    }
+          });
 
-    const fromInput = document.getElementById("salesFrom");
-    const toInput = document.getElementById("salesTo");
-    const metricSelect = document.getElementById("metricSelect");
-    const periodButtons = document.querySelectorAll(".period-btn");
+        } catch (e) {
+          console.error("ProductWiseData fetch failed:", e);
+        }
+      }
 
-    const devToday = new Date("2025-11-20T00:00:00");
+      const fromInput = document.getElementById("salesFrom");
+      const toInput = document.getElementById("salesTo");
+      const metricSelect = document.getElementById("metricSelect");
+      const periodButtons = document.querySelectorAll(".period-btn");
 
-    function setActiveButton(period) {
+      function setActiveButton(period) {
         periodButtons.forEach(b => b.classList.toggle("active", b.dataset.period === period));
-    }
+      }
 
-    function setRangeForPeriod(period) {
+      function setRangeForPeriod(period) {
         let fromDate = new Date(devToday);
         let toDate = new Date(devToday);
 
         if (period === "yesterday") {
-            fromDate.setDate(fromDate.getDate() - 1);
-            toDate = new Date(fromDate);
+          fromDate.setDate(fromDate.getDate() - 1);
+          toDate = new Date(fromDate);
         } else if (period === "thismonth") {
-            fromDate = new Date(devToday.getFullYear(), devToday.getMonth(), 1);
-            toDate = new Date(devToday.getFullYear(), devToday.getMonth() + 1, 0); // last day
+          fromDate = new Date(devToday.getFullYear(), devToday.getMonth(), 1);
+          toDate = new Date(devToday.getFullYear(), devToday.getMonth() + 1, 0);
         } else if (period === "lastmonth") {
-            fromDate = new Date(devToday.getFullYear(), devToday.getMonth() - 1, 1);
-            toDate = new Date(devToday.getFullYear(), devToday.getMonth(), 0);
-        } else {
-            fromDate = new Date(devToday);
-            toDate = new Date(devToday);
+          fromDate = new Date(devToday.getFullYear(), devToday.getMonth() - 1, 1);
+          toDate = new Date(devToday.getFullYear(), devToday.getMonth(), 0);
         }
 
-        fromInput.value = formatDateYYYYMMDD(fromDate);
-        toInput.value = formatDateYYYYMMDD(toDate);
-    }
+        if (fromInput) fromInput.value = formatDateYYYYMMDD(fromDate);
+        if (toInput) toInput.value = formatDateYYYYMMDD(toDate);
+      }
 
-    function loadByCurrentInputs(periodFallback = "today") {
-        const metric = metricSelect.value;
-        const from = fromInput.value;
-        const to = toInput.value;
+      function loadByCurrentInputs(periodFallback = "today") {
+        const metric = metricSelect?.value || "value";
+        const from = fromInput?.value;
+        const to = toInput?.value;
 
-        if (from && to) {
-            loadProductWiseChart({ from, to, metric });
-            return;
-        }
+        if (from && to) return loadProductWiseChart({ from, to, metric });
+        return loadProductWiseChart({ period: periodFallback, metric });
+      }
 
-        loadProductWiseChart({ period: periodFallback, metric });
-    }
+      // init pie
+      setActiveButton("today");
+      setRangeForPeriod("today");
+      loadByCurrentInputs("today");
 
-    setActiveButton("today");
-    setRangeForPeriod("today");
-    loadByCurrentInputs("today");
-
-    periodButtons.forEach(btn => {
+      periodButtons.forEach(btn => {
         btn.addEventListener("click", () => {
-            const period = btn.dataset.period;
-            setActiveButton(period);
-            setRangeForPeriod(period);
-            loadByCurrentInputs(period);
+          const period = btn.dataset.period || "today";
+          setActiveButton(period);
+          setRangeForPeriod(period);
+          loadByCurrentInputs(period);
         });
-    });
+      });
 
-    fromInput.addEventListener("change", () => loadByCurrentInputs());
-    toInput.addEventListener("change", () => loadByCurrentInputs());
-    metricSelect.addEventListener("change", () => loadByCurrentInputs());
+      fromInput?.addEventListener("change", () => loadByCurrentInputs());
+      toInput?.addEventListener("change", () => loadByCurrentInputs());
+      metricSelect?.addEventListener("change", () => loadByCurrentInputs());
 
+      // ---------- LINE ----------
+      const ctx = document.getElementById('dayWiseChart')?.getContext('2d');
+      if (!ctx) return;
 
-    //LINE-CHART
-    const ctx = document.getElementById('dayWiseChart').getContext('2d');
-
-    const dayWiseChart = new Chart(ctx, {
+      const dayWiseChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['9 AM', '11 AM', '1 PM', '3 PM', '5 PM', '7 PM'],
-            datasets: [
-                {
-                    label: 'Today',
-                    data: [12000, 18000, 25000, 19000, 32000, 50000],
-                    borderWidth: 3,
-                    tension: 0.4,
-                    pointRadius: 4
-                },
-                {
-                    label: 'Yesterday',
-                    data: [10000, 15000, 21000, 28000, 35000, 42000],
-                    borderWidth: 3,
-                    tension: 0.4,
-                    pointRadius: 4
-                }
-            ]
+          labels: [],
+          datasets: [
+            { label: 'Today', data: [], borderWidth: 3, tension: 0.4, pointRadius: 3 },
+            { label: 'Yesterday', data: [], borderWidth: 3, tension: 0.4, pointRadius: 3 }
+          ]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top'
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function (context) {
-                            return context.dataset.label + ': LKR ' +
-                                   context.parsed.y.toLocaleString();
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    ticks: {
-                        callback: function (value) {
-                            return 'LKR ' + value.toLocaleString();
-                        }
-                    }
-                }
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: {
+              callbacks: {
+                label: (context) =>
+                  `${context.dataset.label}: LKR ${(context.parsed.y || 0).toLocaleString()}`
+              }
             }
+          },
+          scales: {
+            y: { ticks: { callback: v => `LKR ${v.toLocaleString()}` } }
+          }
         }
+      });
+
+      async function loadDayWise() {
+        try {
+          const res = await fetch(dayWiseUrl, { cache: 'no-store' });
+          if (!res.ok) return;
+
+          const data = await res.json();
+          dayWiseChart.data.labels = data.labels || [];
+          dayWiseChart.data.datasets[0].data = data.today || [];
+          dayWiseChart.data.datasets[1].data = data.yesterday || [];
+          dayWiseChart.update();
+        } catch (e) {
+          console.error("DayWiseSalesData fetch failed:", e);
+        }
+      }
+
+      loadDayWise();
     });
 </script>
+
 
 
 

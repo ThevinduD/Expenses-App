@@ -8,26 +8,51 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - MIS Demo</title>
+    <title>Login - MIS Cliniqon</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #2563eb, #1e40af);
             height: 100vh;
+            margin: 0;
+            background: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url('/images/LoginImg.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center; /* good for desktop */
+        }
+
+        @@media (max-width: 576px) {
+            body
+                {
+                background: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url('/images/LoginImgM.jpg');
+                background-size: cover;
+                background-repeat: no-repeat;
+                background-position: center; /* good for desktop */
+                }
+
+        }
+
+        .login-logo {
+            max-width: 150px; /* control size */
+            width: 100%;
+            height: auto; /* keep aspect ratio */
         }
 
         .login-card {
-            width: 100%;
-            max-width: 380px;
+            width: 95%;
+            max-width: 370px;
             border-radius: 12px;
         }
     </style>
+
 </head>
 
 <body class="d-flex align-items-center justify-content-center">
     <div class="card login-card shadow-lg">
-        <div class="card-body p-4">
-            <h3 class="text-center mb-3">MIS Demo</h3>
+        <div class="card-body px-4 pt-4 pb-2">
+            <img src="/images/logo.jpg"
+                 class="login-logo mx-auto d-block mb-3"
+                 alt="Cliniqon Biotech" />
+            <h3 class="text-center mb-2">Cliniqon Biotech MIS</h3>
             <p class="text-center text-muted">Sign in to continue</p>
 
             @if (ViewBag.Error != null)
@@ -46,9 +71,15 @@
                     <input type="password" name="password" class="form-control" required />
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100">
+                <button type="submit" class="btn btn-primary w-100" style="background-color: #00adee; border-color: #00adee;">
                     Login
                 </button>
+                
+                <div class="d-flex justify-content-center mt-3">
+                    <p style="color: gray; font-size: 0.85rem;">
+                        © 2026 N-AG Innovate | MIS Solution v10
+                    </p>
+                </div>
             </form>
         </div>
     </div>

@@ -34,33 +34,66 @@
     </form>
 }
 
-
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <h4 class="fw-bold mb-0">@ViewBag.PeriodTitle</h4>
         <small class="text-muted">@ViewBag.PeriodRange</small>
-
     </div>
-
-    <a asp-controller="Sales" asp-action="Details" class="btn btn-outline-secondary btn-sm">
-        Back
-    </a>
 </div>
 
 <div class="card mb-3 shadow-sm">
     <div class="card-body p-2">
         <div class="row g-2">
-            <div class="col-md-4">
-                <input type="text" id="filterItem" class="form-control form-control-sm" placeholder="Search Item Name...">
-            </div>
-            <div class="col-md-3">
-                <input type="text" id="filterRep" class="form-control form-control-sm" placeholder="Search Rep Name...">
-            </div>
-            <div class="col-md-3">
-                <input type="text" id="filterCustomer" class="form-control form-control-sm" placeholder="Search Customer...">
-            </div>
             <div class="col-md-2">
-                <button class="btn btn-sm btn-secondary w-100" onclick="clearFilters()">Clear</button>
+                <input type="text" id="filterTeam"
+                       class="form-control form-control-sm"
+                       placeholder="Search Team..."
+                       list="teamList" />
+                <datalist id="teamList"></datalist>
+            </div>
+
+            <div class="col-md-3">
+                <input type="text" id="filterItem"
+                       class="form-control form-control-sm"
+                       placeholder="Search Item Name..."
+                       list="itemList" />
+                <datalist id="itemList"></datalist>
+            </div>
+
+            <div class="col-md-2">
+                <input type="text" id="filterRep"
+                       class="form-control form-control-sm"
+                       placeholder="Search Rep Name..."
+                       list="repList" />
+                <datalist id="repList"></datalist>
+            </div>
+
+            <div class="col-md-3">
+                <input type="text" id="filterCustomer"
+                       class="form-control form-control-sm"
+                       placeholder="Search Customer..."
+                       list="cusList" />
+                <datalist id="cusList"></datalist>
+            </div>
+
+            <div class="col-md-2">
+                <input type="text" id="filterInvoice"
+                       class="form-control form-control-sm"
+                       placeholder="Search Invoice..."
+                       list="invList" />
+                <datalist id="invList"></datalist>
+            </div>
+
+            <div class="col-md-2">
+                <button type="button" class="btn btn-sm btn-primary w-100" id="btnApplyFilters">
+                    Apply
+                </button>
+            </div>
+
+            <div class="col-md-2">
+                <button type="button" class="btn btn-sm btn-secondary w-100" id="btnClearFilters">
+                    Clear
+                </button>
             </div>
         </div>
     </div>
@@ -72,42 +105,61 @@
         <div class="card">
             <div class="card-body p-2">
                 <div class="text-muted fw-semibold">Sales Total</div>
-                <div class="fs-5 fw-bold">@Model.SalesTotal.ToString("N0")</div>
+                <div id="kpiSalesTotal" class="fs-5 fw-bold">@Model.SalesTotal.ToString("N0")</div>
             </div>
         </div>
     </div>
+
     <div class="col-12 col-md-4">
         <div class="card">
             <div class="card-body p-2">
                 <div class="text-muted fw-semibold">Return Total</div>
-                <div class="fs-5 fw-bold">@Model.ReturnTotal.ToString("N0")</div>
+                <div id="kpiReturnTotal" class="fs-5 fw-bold">@Model.ReturnTotal.ToString("N0")</div>
             </div>
         </div>
     </div>
+
     <div class="col-12 col-md-4">
         <div class="card">
             <div class="card-body p-2">
                 <div class="text-muted fw-semibold">Net Total</div>
-                <div class="fs-5 fw-bold">@Model.NetTotal.ToString("N0")</div>
+                <div id="kpiNetTotal" class="fs-5 fw-bold">@Model.NetTotal.ToString("N0")</div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- SALES TABLE -->
+@if (Model.SalesIsTruncated || Model.ReturnIsTruncated)
+{
+    <div class="alert alert-warning py-2 small">
+        Showing only <b>Top @Model.MaxRows</b> rows by value to keep the page fast.
+        @if (Model.SalesIsTruncated)
+        {
+            <span> Sales: <b>@Model.SalesTotalRows</b> rows total.</span>
+        }
+        @if (Model.ReturnIsTruncated)
+        {
+            <span> Returns: <b>@Model.ReturnTotalRows</b> rows total.</span>
+        }
+        <span class="ms-2">Narrow the date range to see more detail.</span>
+    </div>
+}
+
 <h5 class="fw-bold mt-4 mb-2">Sales (Item-wise)</h5>
 <div class="card mb-4">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle mb-0" id="salesTable">
+            <table class="table table-striped table-hover align-middle mb-0 table-sm small" id="salesTable">
                 <thead class="table-light">
                     <tr>
-                        <th style="min-width:200px;">Item</th>
+                        <th style="min-width:270px;">Item</th>
                         <th class="text-end" style="width:60px;">Qty</th>
                         <th class="text-end" style="min-width:100px;">Line Total</th>
-                        <th style="min-width:120px;">Rep</th>
-                        <th style="min-width:180px;">Customer</th>
-                        <th style="min-width:140px;">Invoice</th>
+                        <th style="min-width:150px;">Rep</th>
+                        <th style="min-width:60px;">Team</th>
+                        <th style="min-width:250px;">Customer</th>
+                        <th style="min-width:100px;">Invoice</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -124,10 +176,9 @@
                                 <td class="text-end">@r.Qty.ToString("N0")</td>
                                 <td class="text-end fw-bold">@r.LineTotal.ToString("N0")</td>
                                 <td>@r.SalesRepName</td>
+                                <td>@r.LocShort</td>
                                 <td>@r.CusName</td>
-                                <td>
-                                    @r.InvoDocNo
-                                </td>
+                                <td>@r.InvoDocNo</td>
                             </tr>
                         }
                     }
@@ -150,21 +201,22 @@
 <div class="card">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="returnTable">
+            <table class="table table-striped table-hover align-middle mb-0 table-sm small" id="returnTable">
                 <thead class="table-light">
                     <tr>
-                        <th style="min-width:200px;">Item</th>
+                        <th style="min-width:270px;">Item</th>
                         <th class="text-end" style="width:60px;">Qty</th>
                         <th class="text-end" style="min-width:100px;">Line Total</th>
-                        <th style="min-width:120px;">Rep</th>
-                        <th style="min-width:180px;">Customer</th>
-                        <th style="min-width:140px;">Invoice</th>
+                        <th style="min-width:150px;">Rep</th>
+                        <th style="min-width:60px;">Team</th>
+                        <th style="min-width:250px;">Customer</th>
+                        <th style="min-width:100px;">Invoice</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!Model.ReturnLines.Any())
                     {
-                        <tr><td colspan="8" class="text-center py-4 text-muted">No returns found.</td></tr>
+                        <tr><td colspan="8" class="text-center py-3 text-muted">No returns found.</td></tr>
                     }
                     else
                     {
@@ -175,11 +227,9 @@
                                 <td class="text-end">@r.Qty.ToString("N0")</td>
                                 <td class="text-end fw-bold">@r.LineTotal.ToString("N0")</td>
                                 <td>@r.SalesRepName</td>
+                                <td>@r.LocShort</td>
                                 <td>@r.CusName</td>
-                                <td>
-                                    @r.InvoDocNo
-                                    @r.RtnDocNo
-                                </td>
+                                <td>@r.InvoDocNo</td>
                             </tr>
                         }
                     }
@@ -197,77 +247,208 @@
     </div>
 </div>
 
+<!-- Loading overlay -->
+<div id="filterLoadingOverlay"
+     class="position-fixed top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center"
+     style="background: rgba(255,255,255,0.6); z-index: 1055;">
+    <div class="text-center">
+        <div class="spinner-border text-primary mb-2" role="status"></div>
+        <div class="fw-semibold small text-muted">Processing filters…</div>
+    </div>
+</div>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-      const itemInput = document.getElementById("filterItem");
-      const repInput  = document.getElementById("filterRep");
-      const cusInput  = document.getElementById("filterCustomer");
+        // Inputs
+        const teamInput = document.getElementById("filterTeam");
+        const itemInput = document.getElementById("filterItem");
+        const repInput  = document.getElementById("filterRep");
+        const cusInput  = document.getElementById("filterCustomer");
+        const invInput  = document.getElementById("filterInvoice");
 
-      function processTable(tableId, qtyLabelId, amtLabelId) {
-        const table = document.getElementById(tableId);
-        if (!table) return;
+        // Buttons
+        const btnApply = document.getElementById("btnApplyFilters");
+        const btnClear = document.getElementById("btnClearFilters");
 
-        const itemFilter = itemInput.value.toLowerCase();
-        const repFilter  = repInput.value.toLowerCase();
-        const cusFilter  = cusInput.value.toLowerCase();
+        // Overlay
+        const loadingOverlay = document.getElementById("filterLoadingOverlay");
+        const SPINNER_DELAY_MS = 30;
 
-        const rows = table.querySelectorAll("tbody tr");
-        let runningQty = 0;
-        let runningAmt = 0;
+        function showLoading() { loadingOverlay?.classList.remove("d-none"); }
+        function hideLoading() { loadingOverlay?.classList.add("d-none"); }
 
-        rows.forEach(row => {
-          // Skip "No sales found" rows (they have only 1 td with colspan)
-          if (row.cells.length < 3) return;
+        // Table column maps (same layout for sales + returns)
+        const cols = { item:0, qty:1, amt:2, rep:3, team:4, cus:5, inv:6 };
 
-          const itemName = row.cells[0].innerText.toLowerCase();
-          const repName  = row.cells[3].innerText.toLowerCase();
-          const cusName  = row.cells[4].innerText.toLowerCase();
+        // Cache rows once (raw for datalist, lower for filtering)
+        function buildRowCache(tableId, c) {
+            const table = document.getElementById(tableId);
+            if (!table) return [];
 
-          const qtyText = row.cells[1].innerText.replace(/[^-0-9.]/g, "");
-          const amtText = row.cells[2].innerText.replace(/[^-0-9.]/g, "");
+            const rows = Array.from(table.querySelectorAll("tbody tr"));
 
-          const qtyValue   = parseFloat(qtyText) || 0;
-          const totalValue = parseFloat(amtText) || 0;
+            // Keep only real data rows (skip "No sales found" row)
+            return rows
+                .filter(r => r.cells && r.cells.length > c.inv)
+                .map(r => {
+                    const itemRaw = (r.cells[c.item].innerText || "").trim();
+                    const repRaw  = (r.cells[c.rep].innerText  || "").trim();
+                    const teamRaw = (r.cells[c.team].innerText || "").trim();
+                    const cusRaw  = (r.cells[c.cus].innerText  || "").trim();
+                    const invRaw  = (r.cells[c.inv].innerText  || "").trim();
 
-          const matches =
-            itemName.includes(itemFilter) &&
-            repName.includes(repFilter) &&
-            cusName.includes(cusFilter);
+                    const qty = parseFloat((r.cells[c.qty].innerText || "").replace(/[^-0-9.]/g, "")) || 0;
+                    const amt = parseFloat((r.cells[c.amt].innerText || "").replace(/[^-0-9.]/g, "")) || 0;
 
-          row.style.display = matches ? "" : "none";
+                    return {
+                        row: r,
 
-          if (matches) {
-            runningQty += qtyValue;
-            runningAmt += totalValue;
-          }
+                        // Raw (nice casing) - for datalists
+                        itemRaw, repRaw, teamRaw, cusRaw, invRaw,
+
+                        // Lowercase - for filtering
+                        item: itemRaw.toLowerCase(),
+                        rep:  repRaw.toLowerCase(),
+                        team: teamRaw.toLowerCase(),
+                        cus:  cusRaw.toLowerCase(),
+                        inv:  invRaw.toLowerCase(),
+
+                        qty, amt
+                    };
+                });
+        }
+
+        const salesCache  = buildRowCache("salesTable", cols);
+        const returnCache = buildRowCache("returnTable", cols);
+
+        // Build datalists from caches (no DOM scanning)
+        function fillDatalistFromCache(caches, getter, datalistId, limit = 400) {
+            const dl = document.getElementById(datalistId);
+            if (!dl) return;
+
+            const set = new Set();
+
+            for (const cache of caches) {
+                for (const x of cache) {
+                    const v = (getter(x) || "").trim();
+                    if (v) set.add(v);
+                    if (set.size >= limit) break;
+                }
+                if (set.size >= limit) break;
+            }
+
+            dl.innerHTML = "";
+            Array.from(set).slice(0, limit).forEach(v => {
+                const opt = document.createElement("option");
+                opt.value = v;
+                dl.appendChild(opt);
+            });
+        }
+
+        function buildAllDatalists() {
+            fillDatalistFromCache([salesCache, returnCache], x => x.itemRaw, "itemList");
+            fillDatalistFromCache([salesCache, returnCache], x => x.repRaw,  "repList");
+            fillDatalistFromCache([salesCache, returnCache], x => x.teamRaw, "teamList");
+            fillDatalistFromCache([salesCache, returnCache], x => x.cusRaw,  "cusList");
+            fillDatalistFromCache([salesCache, returnCache], x => x.invRaw,  "invList");
+        }
+
+        // Filter one cache and return totals
+        function processCache(cache) {
+            const itemF = (itemInput.value || "").toLowerCase();
+            const repF  = (repInput.value  || "").toLowerCase();
+            const teamF = (teamInput.value || "").toLowerCase();
+            const cusF  = (cusInput.value  || "").toLowerCase();
+            const invF  = (invInput.value  || "").toLowerCase();
+
+            let runningQty = 0;
+            let runningAmt = 0;
+
+            for (const x of cache) {
+                const ok =
+                    x.item.includes(itemF) &&
+                    x.rep.includes(repF) &&
+                    x.team.includes(teamF) &&
+                    x.cus.includes(cusF) &&
+                    x.inv.includes(invF);
+
+                x.row.style.display = ok ? "" : "none";
+
+                if (ok) {
+                    runningQty += x.qty;
+                    runningAmt += x.amt;
+                }
+            }
+
+            return { qty: runningQty, amt: runningAmt };
+        }
+
+        // Apply filters for both tables + update KPIs
+        function filterEverything() {
+            const sales = processCache(salesCache);
+            const ret   = processCache(returnCache);
+
+            document.getElementById("totalQty").innerText = sales.qty.toLocaleString("en-US");
+            document.getElementById("totalAmount").innerText = sales.amt.toLocaleString("en-US");
+
+            document.getElementById("returnTotalQty").innerText = ret.qty.toLocaleString("en-US");
+            document.getElementById("returnTotalAmount").innerText = ret.amt.toLocaleString("en-US");
+
+            document.getElementById("kpiSalesTotal").innerText  = sales.amt.toLocaleString("en-US");
+            document.getElementById("kpiReturnTotal").innerText = ret.amt.toLocaleString("en-US");
+            document.getElementById("kpiNetTotal").innerText    = (sales.amt - ret.amt).toLocaleString("en-US");
+        }
+
+        function clearFilters() {
+            ["filterItem","filterRep","filterTeam","filterCustomer","filterInvoice"].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = "";
+            });
+            filterEverything();
+        }
+
+        function applyWithSpinner() {
+            showLoading();
+            btnApply && (btnApply.disabled = true);
+            btnClear && (btnClear.disabled = true);
+
+            setTimeout(() => {
+                filterEverything();
+                hideLoading();
+                btnApply && (btnApply.disabled = false);
+                btnClear && (btnClear.disabled = false);
+            }, SPINNER_DELAY_MS);
+        }
+
+        function clearWithSpinner() {
+            showLoading();
+            btnApply && (btnApply.disabled = true);
+            btnClear && (btnClear.disabled = true);
+
+            setTimeout(() => {
+                clearFilters();
+                hideLoading();
+                btnApply && (btnApply.disabled = false);
+                btnClear && (btnClear.disabled = false);
+            }, SPINNER_DELAY_MS);
+        }
+
+        // Wire buttons
+        btnApply?.addEventListener("click", applyWithSpinner);
+        btnClear?.addEventListener("click", clearWithSpinner);
+
+        // Enter in any input = Apply
+        [itemInput, repInput, teamInput, cusInput, invInput].forEach(i => {
+            i?.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    applyWithSpinner();
+                }
+            });
         });
 
-        const qtyElem = document.getElementById(qtyLabelId);
-        const amtElem = document.getElementById(amtLabelId);
-
-        if (qtyElem) qtyElem.innerText = runningQty.toLocaleString("en-US");
-        if (amtElem) amtElem.innerText = runningAmt.toLocaleString("en-US");
-      }
-
-      function filterEverything() {
-        // SALES footer ids in your html: totalQty, totalAmount
-        processTable("salesTable", "totalQty", "totalAmount");
-
-        // returns table id in your html: returnTable
-        // (you currently have NO footer there, so this won’t display totals unless you add it)
-        processTable("returnTable", "returnTotalQty", "returnTotalAmount");
-      }
-
-      [itemInput, repInput, cusInput].forEach(i => i.addEventListener("keyup", filterEverything));
-      filterEverything();
+        // Build datalists once and calculate initial totals/footer
+        buildAllDatalists();
+        filterEverything();
     });
-
-    function clearFilters() {
-      document.getElementById("filterItem").value = "";
-      document.getElementById("filterRep").value = "";
-      document.getElementById("filterCustomer").value = "";
-      document.getElementById("filterItem").dispatchEvent(new Event("keyup"));
-    }
 </script>
-

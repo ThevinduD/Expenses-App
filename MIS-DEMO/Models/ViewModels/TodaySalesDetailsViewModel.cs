@@ -14,5 +14,17 @@
         public DateTime FromDate { get; set; }
         public DateTime ToDate { get; set; }
 
+        //ROW COUNTS 
+        public int MaxRows { get; set; } = 1000;
+
+        public int SalesTotalRows { get; set; }
+        public int ReturnTotalRows { get; set; }
+
+        public bool SalesIsTruncated { get; set; }
+        public bool ReturnIsTruncated { get; set; }
+        public string? TruncateNote { get; set; }
+
+
+
     }
 }

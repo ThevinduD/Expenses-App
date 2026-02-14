@@ -14,8 +14,13 @@ namespace MIS_DEMO.Data
         public DbSet<Users> USERS { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Users>().HasNoKey();
+            modelBuilder.Entity<Users>().HasKey(x => x.UserName);
             modelBuilder.Entity<SalesFact>().HasNoKey();
+            modelBuilder.Entity<VwSalesReturnFact>().HasNoKey();
+            modelBuilder.Entity<CustomerInvoiceMain>()
+                        .HasKey(x => new { x.InvoDocNo, x.ComCode, x.LocCode });
+            modelBuilder.Entity<TeamMis>().HasKey(x => x.LocCode);
+
         }
 
         public DbSet<UserRepMap> WKF_USER_REP_MAP { get; set; }
@@ -25,6 +30,10 @@ namespace MIS_DEMO.Data
         public DbSet<WKF_MAP_SM_ASM> WKF_MAP_SM_ASM { get; set; }
         public DbSet<DirTeamMap> DIR_TEAM_MAP { get; set; }
         public DbSet<WkfMapAsmDir> WKF_MAP_ASM_DIR { get; set; }
+        public DbSet<CustomerInvoiceMain> CUSTOMER_INVOICE_MAIN { get; set; }
+        public DbSet<TeamMis> TEAM_MIS { get; set; }
+
+
 
 
     }

@@ -12,6 +12,7 @@
 
         public string? ItemCode { get; set; }
         public string? Description { get; set; }
+        public string? LocShort { get; set; }
 
         public decimal Qty { get; set; }
         public decimal SoldPrice { get; set; }

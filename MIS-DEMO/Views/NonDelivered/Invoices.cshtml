@@ -1,0 +1,73 @@
+﻿@model MIS_DEMO.Models.ViewModels.NonDeliveredInvoicesViewModel
+
+@{
+    ViewData["Title"] = "Non-Delivered Invoices";
+
+    decimal ToK(decimal amt) => amt / 1000m;
+    string KText(decimal amt) => $"{Math.Round(ToK(amt), 1):0.0}K";
+}
+
+<div class="d-flex justify-content-between align-items-start mb-2">
+    <div>
+        <h4 class="fw-bold mb-0">@ViewBag.Title</h4>
+        <small class="text-muted">@ViewBag.SubTitle</small>
+    </div>
+</div>
+
+<div class="card shadow-sm mt-3">
+    <div class="card-body p-2">
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm text-center inv-summary-table">
+                <thead class="table-light">
+                    <tr class="text-center">
+                        <th rowspan="2" style="min-width:80px;">TEAM</th>
+                        <th colspan="2" class="bg-warning text-black">Less than 45 days</th>
+                        <th colspan="2" class="bg-danger">More than 45 days</th>
+                    </tr>
+                    <tr class="text-center">
+                        <th style="min-width:80px;">No of Inv</th>
+                        <th style="min-width:120px;">Amount</th>
+                        <th style="min-width:80px;">No of Inv</th>
+                        <th style="min-width:120px;">Amount</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model.Rows == null || !Model.Rows.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">
+                                No pending invoices found.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var r in Model.Rows)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@r.Team</td>
+                                <td class="text-end">@r.Under45Count</td>
+                                <td class="text-end">@KText(r.Under45Amount)</td>
+                                <td class="text-end">@r.Over45Count</td>
+                                <td class="text-end">@KText(r.Over45Amount)</td>
+                            </tr>
+                        }
+
+                        <tr class="table-warning fw-bold">
+                            <td style="background-color:#343a40" class="text-white">Total</td>
+                            <td class="text-end bg-warning-subtle">@Model.Under45CountTotal</td>
+                            <td class="text-end bg-warning-subtle">@KText(Model.Under45AmountTotal)</td>
+                            <td class="text-end bg-danger-subtle">@Model.Over45CountTotal</td>
+                            <td class="text-end bg-danger-subtle">@KText(Model.Over45AmountTotal)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="small text-muted mt-2">
+            Amounts shown in K (1K = 1,000 LKR)
+        </div>
+    </div>
+</div>

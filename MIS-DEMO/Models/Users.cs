@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MIS_DEMO.Models
 {
-    [Keyless]
     [Table("USERS")]
     public class Users
     {
@@ -18,5 +17,8 @@ namespace MIS_DEMO.Models
 
         [Column("Description")]
         public string Description { get; set; } = null!;
+        
+        [Column("EmailAddress")]
+        public string Email { get; set; } = null!;
     }
 }

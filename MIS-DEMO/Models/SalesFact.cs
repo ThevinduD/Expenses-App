@@ -12,10 +12,13 @@ namespace MIS_DEMO.Models
         public string CusName { get; set; }
         public string InvoDocNo { get; set; }
         public DateTime RefDate { get; set; }
+        public DateTime SysDateTime { get; set; }
 
         public string ItemCode { get; set; }
         public string ItemDescription { get; set; }
         public string Pat_Name { get; set; }
+        public string? LocShort { get; set; }
+
 
         public decimal SoldPrice { get; set; }
         public decimal Qty { get; set; }
