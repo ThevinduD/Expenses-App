@@ -8,8 +8,11 @@ namespace MIS_DEMO.Models
         public string InvoDocNo { get; set; }
         public string ComCode { get; set; }
         public string LocCode { get; set; }
+        public string CusCode { get; set; }
 
         public DateTime RefDate { get; set; }
+        public DateTime FDeliveryDate { get; set; }
+
         public string SalesRepCode { get; set; }
         public decimal InvoiceAmt { get; set; }
 

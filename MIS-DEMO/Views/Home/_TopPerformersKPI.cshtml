@@ -1,0 +1,77 @@
+﻿@model MIS_DEMO.Models.ViewModels.TopPerformersKpiViewModel
+
+<div class="card shadow-sm bg-grey h-100">
+    <div class="card-body pt-3 pb-2 text-center">
+
+        <div class="d-flex justify-content-between align-items-center mb-3 px-1">
+            <button class="btn btn-sm px-2 py-0 text-white" style="background-color:#3A3A3A;"
+                    onclick="loadTopPerformersKpi(@(Model.CurrentMonthOffset - 1), @(Model.IsTop.ToString().ToLower()))">
+                &laquo; Prev
+            </button>
+
+            <div class="d-flex flex-column align-items-center">
+                <div class="fw-bold fs-5 d-flex align-items-center" style="line-height: 1;">
+                    @(Model.IsTop ? "Top Performers" : "Low Performers")
+
+                    <button class="btn btn-sm btn-link text-decoration-none p-0 fs-5"
+                            onclick="loadTopPerformersKpi(@Model.CurrentMonthOffset, @((!Model.IsTop).ToString().ToLower()))"
+                            title="Switch to @(Model.IsTop ? "Lowest" : "Top")">
+                        🔃
+                    </button>
+                </div>
+                <small class="text-muted fw-semibold">@Model.MonthLabel</small>
+            </div>
+
+            <button class="btn btn-sm px-2 py-0 text-white" style="background-color:#3A3A3A;"
+                    onclick="loadTopPerformersKpi(@(Model.CurrentMonthOffset + 1), @(Model.IsTop.ToString().ToLower()))"
+                    @(Model.CurrentMonthOffset >= 0 ? "disabled" : "")>
+                Next &raquo;
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-borderless table-sm mb-0 mx-auto" style="max-width: 400px; background-color: transparent;">
+                <thead>
+                    <tr class="border-bottom">
+                        <th class="fw-bold text-start text-muted" style="width:70px;">Team</th>
+                        <th class="fw-bold text-start text-muted" style="width:160px;">Rep Name</th>
+                        <th class="fw-bold text-end text-muted" style="width:120px;">Net Sale</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.TopReps.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center py-3 text-muted">No sales found for @Model.MonthLabel.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var rep in Model.TopReps)
+                        {
+                            <tr>
+                                <td class="text-start fw-semibold">@rep.Team</td>
+                                <td class="text-start text-truncate" style="max-width: 160px;" title="@rep.RepName">
+                                    @rep.RepName
+                                </td>
+                                <td class="text-end fw-bold @(rep.NetSale < 0 ? "text-danger" : "")">
+                                    @rep.NetSale.ToString("N0")
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+    <div class="text-center px-2 pb-3">
+        <a asp-controller="Performance"
+           asp-action="RepPerformanceDetails"
+           asp-route-monthOffset="@Model.CurrentMonthOffset"
+           class="btn btn-sm text-white"
+           style="background-color:#3A3A3A; font-size: 0.8rem;">
+            View All Reps &raquo;
+        </a>
+    </div>
+</div>

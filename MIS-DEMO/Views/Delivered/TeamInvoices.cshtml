@@ -1,0 +1,217 @@
+﻿@model MIS_DEMO.Models.ViewModels.TeamInvoicesViewModel
+
+@{
+    ViewData["Title"] = "Team Invoices (Delivered)";
+
+    decimal ToK(decimal amt) => amt / 1000m;
+    string KText(decimal amt) => $"{Math.Round(ToK(amt), 1):0.0}K";
+}
+
+<div class="d-flex justify-content-between align-items-start mb-2">
+    <div>
+        <h4 class="fw-bold mb-0">@ViewBag.Title</h4>
+        <small class="text-muted">@ViewBag.SubTitle</small>
+
+        @if (Model.IsTruncated)
+        {
+            <div class="mt-1">
+                <span class="badge text-bg-warning">
+                    Showing top @Model.MaxRows of @Model.TotalRows invoices
+                </span>
+            </div>
+        }
+    </div>
+
+    <div class="text-end">
+        <a class="btn btn-sm btn-outline-secondary"
+           asp-controller="Delivered"
+           asp-action="Invoices">
+            Back
+        </a>
+    </div>
+</div>
+
+<!-- CLIENT-SIDE FILTERS -->
+<div class="card mb-3 shadow-sm">
+    <div class="card-body p-2">
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-2">
+                <label class="form-label small mb-1">Team</label>
+                <input type="text" class="form-control form-control-sm" value="@Model.Team" readonly />
+            </div>
+
+            <div class="col-12 col-md-3">
+                <label class="form-label small mb-1">Invoice No</label>
+                <input type="text" id="filterInvoice" class="form-control form-control-sm"
+                       placeholder="Search invoice..." list="invList" />
+                <datalist id="invList"></datalist>
+            </div>
+
+            <div class="col-12 col-md-3">
+                <label class="form-label small mb-1">Rep</label>
+                <input type="text" id="filterRep" class="form-control form-control-sm"
+                       placeholder="Search rep..." list="repList" />
+                <datalist id="repList"></datalist>
+            </div>
+
+            <div class="col-12 col-md-3">
+                <label class="form-label small mb-1">Customer</label>
+                <input type="text" id="filterCustomer" class="form-control form-control-sm"
+                       placeholder="Search customer..." list="cusList" />
+                <datalist id="cusList"></datalist>
+            </div>
+
+            <div class="col-6 col-md-1">
+                <button type="button" class="btn btn-sm btn-primary w-100" id="btnApplyFilters">
+                    Apply
+                </button>
+            </div>
+
+            <div class="col-6 col-md-1">
+                <button type="button" class="btn btn-sm btn-secondary w-100" id="btnClearFilters">
+                    Clear
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Totals -->
+<div class="row g-2 mb-3">
+    <div class="col-12 col-md-4">
+        <div class="card">
+            <div class="card-body p-2">
+                <div class="text-muted fw-semibold">Total Amount (Shown Rows)</div>
+                <div class="fs-5 fw-bold" id="kpiTotalAmount">@KText(Model.TotalAmount)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+        <div class="card">
+            <div class="card-body p-2">
+                <div class="text-muted fw-semibold">Invoice Count (Shown Rows)</div>
+                <div class="fs-5 fw-bold" id="kpiCount">@((Model.Rows?.Count ?? 0).ToString("N0"))</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle mb-0 table-sm small" id="invTable">
+                <thead class="table-light">
+                    <tr>
+                        <th style="min-width:110px;">Date</th>
+                        <th style="min-width:120px;">Invoice</th>
+                        <th style="min-width:220px;">Customer</th>
+                        <th style="min-width:160px;">Rep</th>
+                        <th class="text-end" style="min-width:110px;">Amount</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var r in Model.Rows)
+                    {
+                        var cus = string.IsNullOrWhiteSpace(r.CusName) ? r.CusCode : r.CusName;
+                        var rep = string.IsNullOrWhiteSpace(r.SalesRepName) ? r.SalesRepCode : r.SalesRepName;
+
+                        <tr>
+                            <td>@r.RefDate.ToString("yyyy-MM-dd")</td>
+                            <td class="fw-semibold">@r.InvoDocNo</td>
+                            <td>@cus</td>
+                            <td>@rep</td>
+                            <td class="text-end fw-bold" data-amt="@r.Amount">@KText(r.Amount)</td>
+                        </tr>
+                    }
+                </tbody>
+
+                <tfoot class="table-light fw-bold">
+                    <tr>
+                        <td colspan="4" class="text-end">TOTAL</td>
+                        <td class="text-end text-primary" id="tableTotal">@KText(Model.Rows.Sum(x => x.Amount))</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const invoiceInput = document.getElementById("filterInvoice");
+        const repInput = document.getElementById("filterRep");
+        const customerInput = document.getElementById("filterCustomer");
+
+        const invList = document.getElementById("invList");
+        const repList = document.getElementById("repList");
+        const cusList = document.getElementById("cusList");
+
+        const rows = Array.from(document.querySelectorAll("#invTable tbody tr"));
+        const kpiCount = document.getElementById("kpiCount");
+        const kpiTotalAmount = document.getElementById("kpiTotalAmount");
+        const tableTotal = document.getElementById("tableTotal");
+
+        function toKText(amount) {
+            return (Math.round((amount / 1000) * 10) / 10).toFixed(1) + "K";
+        }
+
+        const cache = rows.map(r => ({
+            row: r,
+            inv: r.cells[1].innerText.toLowerCase(),
+            rep: r.cells[3].innerText.toLowerCase(),
+            cus: r.cells[2].innerText.toLowerCase(),
+            amt: parseFloat(r.cells[4].dataset.amt || 0)
+        }));
+
+        function buildDatalist(list, values) {
+            list.innerHTML = "";
+            values.forEach(v => {
+                const opt = document.createElement("option");
+                opt.value = v;
+                list.appendChild(opt);
+            });
+        }
+
+        function buildLists() {
+            buildDatalist(invList, [...new Set(cache.map(x => x.inv))]);
+            buildDatalist(repList, [...new Set(cache.map(x => x.rep))]);
+            buildDatalist(cusList, [...new Set(cache.map(x => x.cus))]);
+        }
+
+        function applyFilters() {
+            const invF = invoiceInput.value.toLowerCase();
+            const repF = repInput.value.toLowerCase();
+            const cusF = customerInput.value.toLowerCase();
+
+            let cnt = 0;
+            let amt = 0;
+
+            cache.forEach(x => {
+                const ok = x.inv.includes(invF) &&
+                           x.rep.includes(repF) &&
+                           x.cus.includes(cusF);
+
+                x.row.style.display = ok ? "" : "none";
+                if (ok) { cnt++; amt += x.amt; }
+            });
+
+            kpiCount.innerText = cnt.toLocaleString();
+            kpiTotalAmount.innerText = toKText(amt);
+            tableTotal.innerText = toKText(amt);
+        }
+
+        document.getElementById("btnApplyFilters").onclick = applyFilters;
+        document.getElementById("btnClearFilters").onclick = () => {
+            invoiceInput.value = "";
+            repInput.value = "";
+            customerInput.value = "";
+            applyFilters();
+        };
+
+        buildLists();
+        applyFilters();
+    });
+</script>

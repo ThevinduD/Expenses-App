@@ -136,7 +136,7 @@ namespace MIS_DEMO.Controllers
             };
 
             ViewBag.Title = "Invoice Delivery - Values in 1LK";
-            ViewBag.SubTitle = $"Cutoff: {cutoff45:yyyy-MM-dd} (<= cutoff = Over 45 days)";
+            ViewBag.SubTitle = $"Cutoff: {cutoff45:yyyy-MM-dd}";
 
             return View(model);
         }
@@ -154,6 +154,202 @@ namespace MIS_DEMO.Controllers
                 teamCodes.Add(sessionTeamCode);
 
             return teamCodes;
+        }
+
+        [HttpGet]
+        public IActionResult TeamInvoices(string team, string bucket, string? invoice, string? rep, string? customer)
+        {
+            var userName = HttpContext.Session.GetString("Username");
+            var userType = HttpContext.Session.GetString("UserType");
+            var salesRepCode = HttpContext.Session.GetString("SalesRepCode");
+            var teamCode = HttpContext.Session.GetString("TeamCode");
+
+            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userType))
+                return RedirectToAction("Login", "Account");
+
+            // validate inputs
+            team = (team ?? "").Trim();
+            bucket = (bucket ?? "").Trim().ToLower();
+
+            if (string.IsNullOrWhiteSpace(team))
+                return RedirectToAction("Invoices");
+
+            if (bucket != "under45" && bucket != "over45")
+                bucket = "under45";
+
+            var today = _dateProvider.Today.Date;
+            var cutoff45 = today.AddDays(-45);
+
+            // -----------------------------
+            // Base: pending invoices
+            // -----------------------------
+            IQueryable<CustomerInvoiceMain> q = _context.CUSTOMER_INVOICE_MAIN
+                .AsNoTracking()
+                .Where(x =>
+                    (x.isFinalDelivery == false || x.isFinalDelivery == null) &&
+                    x.InvoiceAmt != 0 &&
+                    x.Cancel == false
+                );
+
+            // -----------------------------
+            // Access control (reuse service)
+            // -----------------------------
+            var repCodes = _salesAccessService.GetAccessibleRepCodes(userType, userName, salesRepCode);
+            bool isAll = repCodes.Count == 1 && repCodes[0] == "__ALL__";
+
+            if (!isAll && userType == "DIRECTOR")
+            {
+                var teamCodes = GetDirectorTeamCodes(userName, teamCode);
+                if (!teamCodes.Any())
+                    return View("TeamInvoices", new TeamInvoicesViewModel
+                    {
+                        Team = team,
+                        Bucket = bucket,
+                        CutoffDate = cutoff45
+                    });
+
+                q = q.Where(x => x.Pat_Name != null && teamCodes.Contains(x.Pat_Name));
+            }
+            else if (!isAll)
+            {
+                if (repCodes == null || repCodes.Count == 0)
+                    return View("TeamInvoices", new TeamInvoicesViewModel
+                    {
+                        Team = team,
+                        Bucket = bucket,
+                        CutoffDate = cutoff45
+                    });
+
+                q = q.Where(x => repCodes.Contains(x.SalesRepCode));
+            }
+
+            // -----------------------------
+            // SALES header lookup (1 row per invoice) for CusName + SalesRepName
+            // -----------------------------
+            var salesHeaderQ = _context.VW_SALES_FACT
+                .AsNoTracking()
+                .Where(x => x.InvoDocNo != null && x.InvoDocNo != "")
+                .GroupBy(x => x.InvoDocNo)
+                .Select(g => new
+                {
+                    InvoDocNo = g.Key,
+                    CusName = g.Select(x => x.CusName).FirstOrDefault(),
+                    SalesRepName = g.Select(x => x.SalesRepName).FirstOrDefault(),
+                });
+
+            // -----------------------------
+            // Join: invoice -> TEAM_MIS (LocShort) + join sales header
+            // -----------------------------
+            var baseQ =
+                from inv in q
+                join tm in _context.TEAM_MIS.AsNoTracking()
+                    on inv.Pat_Name equals tm.LocCode into teamJoin
+                from tm in teamJoin.DefaultIfEmpty()
+
+                join sh in salesHeaderQ
+                    on inv.InvoDocNo equals sh.InvoDocNo into salesJoin
+                from sh in salesJoin.DefaultIfEmpty()
+
+                select new
+                {
+                    inv.RefDate,
+                    inv.InvoiceAmt,
+                    inv.InvoDocNo,
+                    inv.CusCode,
+                    inv.SalesRepCode,
+
+                    CusName = sh != null ? sh.CusName : null,
+                    SalesRepName = sh != null ? sh.SalesRepName : null,
+
+                    Team = (tm != null && tm.LocShort != null && tm.LocShort != "")
+                            ? tm.LocShort
+                            : inv.Pat_Name
+                };
+
+            // -----------------------------
+            // Filter by selected TEAM (LocShort)
+            // -----------------------------
+            baseQ = baseQ.Where(x => x.Team == team);
+
+            // -----------------------------
+            // Filter by bucket (under/over 45)
+            // -----------------------------
+            if (bucket == "under45")
+                baseQ = baseQ.Where(x => x.RefDate > cutoff45);
+            else
+                baseQ = baseQ.Where(x => x.RefDate <= cutoff45);
+
+            // -----------------------------
+            // Optional search filters (invoice/rep/customer)
+            // -----------------------------
+            string invF = (invoice ?? "").Trim().ToLower();
+            string repF = (rep ?? "").Trim().ToLower();
+            string cusF = (customer ?? "").Trim().ToLower();
+
+            if (!string.IsNullOrEmpty(invF))
+                baseQ = baseQ.Where(x => x.InvoDocNo != null && x.InvoDocNo.ToLower().Contains(invF));
+
+            if (!string.IsNullOrEmpty(repF))
+                baseQ = baseQ.Where(x =>
+                    (x.SalesRepName != null && x.SalesRepName.ToLower().Contains(repF)) ||
+                    (x.SalesRepCode != null && x.SalesRepCode.ToLower().Contains(repF))
+                );
+
+            if (!string.IsNullOrEmpty(cusF))
+                baseQ = baseQ.Where(x =>
+                    (x.CusName != null && x.CusName.ToLower().Contains(cusF)) ||
+                    (x.CusCode != null && x.CusCode.ToLower().Contains(cusF))
+                );
+
+            // -----------------------------
+            // Performance safety: TOP 1000
+            // -----------------------------
+            const int MAX_ROWS = 1000;
+
+            // IMPORTANT: Count before Take if you want "truncated" label
+            int totalRows = baseQ.Count();
+
+            var rows = baseQ
+                .OrderByDescending(x => x.RefDate)
+                .ThenByDescending(x => x.InvoiceAmt)
+                .Take(MAX_ROWS)
+                .ToList()
+                .Select(x => new TeamInvoicesRowVm
+                {
+                    InvoDocNo = x.InvoDocNo ?? "",
+                    RefDate = x.RefDate,
+                    Amount = x.InvoiceAmt,
+                    CusCode = x.CusCode ?? "",
+                    CusName = x.CusName ?? x.CusCode ?? "",
+                    SalesRepCode = x.SalesRepCode ?? "",
+                    SalesRepName = x.SalesRepName ?? x.SalesRepCode ?? ""
+                })
+                .ToList();
+
+            var vm = new TeamInvoicesViewModel
+            {
+                Team = team,
+                Bucket = bucket,
+                CutoffDate = cutoff45,
+
+                Invoice = invoice,
+                Rep = rep,
+                Customer = customer,
+
+                TotalRows = totalRows,
+                MaxRows = MAX_ROWS,
+                IsTruncated = totalRows > MAX_ROWS,
+
+                TotalAmount = rows.Sum(r => r.Amount),
+                Rows = rows
+            };
+
+            ViewBag.Title = $"Pending Invoices - {team}";
+            ViewBag.SubTitle = bucket == "under45"
+                ? $"Less than 45 days (>{cutoff45:yyyy-MM-dd})"
+                : $"More than 45 days (≤{cutoff45:yyyy-MM-dd})";
+
+            return View("TeamInvoices", vm);
         }
     }
 }

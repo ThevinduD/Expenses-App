@@ -12,6 +12,13 @@
         <h4 class="fw-bold mb-0">@ViewBag.Title</h4>
         <small class="text-muted">@ViewBag.SubTitle</small>
     </div>
+    <div class="text-end">
+        <a class="btn btn-sm btn-outline-secondary"
+           asp-controller="Home"
+           asp-action="Index">
+            Back
+        </a>
+    </div>
 </div>
 
 <div class="card shadow-sm mt-3">
@@ -47,9 +54,25 @@
                         {
                             <tr>
                                 <td class="fw-semibold">@r.Team</td>
-                                <td class="text-end">@r.Under45Count</td>
+                                <td class="text-end">
+                                    <a class="fw-semibold"
+                                       asp-controller="NonDelivered"
+                                       asp-action="TeamInvoices"
+                                       asp-route-team="@r.Team"
+                                       asp-route-bucket="under45">
+                                        @r.Under45Count
+                                    </a>
+                                </td>
                                 <td class="text-end">@KText(r.Under45Amount)</td>
-                                <td class="text-end">@r.Over45Count</td>
+                                <td class="text-end">
+                                    <a class="fw-semibold"
+                                       asp-controller="NonDelivered"
+                                       asp-action="TeamInvoices"
+                                       asp-route-team="@r.Team"
+                                       asp-route-bucket="over45">
+                                        @r.Over45Count
+                                    </a>
+                                </td>
                                 <td class="text-end">@KText(r.Over45Amount)</td>
                             </tr>
                         }

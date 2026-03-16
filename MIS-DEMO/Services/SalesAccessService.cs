@@ -104,7 +104,7 @@ namespace MIS_DEMO.Services
                 return new List<string> { salesRepCode };
 
             // ---------------- ASM / SM ----------------
-            if (userType == "ASM")
+            if (userType == "ASM" || userType == "OTHER")
             {
                 var isSM = _context.WKF_MAP_SM_ASM
                     .AsNoTracking()

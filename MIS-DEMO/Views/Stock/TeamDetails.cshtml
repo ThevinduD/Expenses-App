@@ -1,0 +1,219 @@
+﻿@model MIS_DEMO.Models.ViewModels.TeamStockDetailsViewModel
+
+@{
+    ViewData["Title"] = $"Stock Details - {Model.TeamName}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="fw-bold mb-0">Team Stock: @Model.TeamName</h4>
+    </div>
+    <div class="text-end">
+        <a class="btn btn-sm btn-outline-secondary" href="javascript:history.back()">
+            Back
+        </a>
+    </div>
+</div>
+
+<div class="card mb-3 shadow-sm">
+    <div class="card-body p-2">
+        <div class="row g-2">
+            <div class="col-md-4">
+                <input type="text" id="filterItem" class="form-control form-control-sm" placeholder="Search Item Name..." list="itemList" />
+                <datalist id="itemList"></datalist>
+            </div>
+            <div class="col-md-4">
+                <input type="text" id="filterSupplier" class="form-control form-control-sm" placeholder="Search Supplier..." list="supList" />
+                <datalist id="supList"></datalist>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-sm btn-primary w-100" id="btnApplyFilters">Apply</button>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-sm btn-secondary w-100" id="btnClearFilters">Clear</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-2 mb-3">
+    <div class="col-12 col-md-6">
+        <div class="card">
+            <div class="card-body p-2">
+                <div class="text-muted fw-semibold">Quantity</div>
+                <div id="kpiTotalQty" class="fs-5 fw-bold">@Model.TotalStockQty.ToString("N0")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="card">
+            <div class="card-body p-2">
+                <div class="text-muted fw-semibold">Value</div>
+                <div id="kpiTotalValue" class="fs-5 fw-bold">@Model.TotalStockValue.ToString("N0")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle mb-0 table-sm small" id="stockTable">
+                <thead class="table-light">
+                    <tr>
+                        <th style="min-width:200px;">Item Name</th>
+                        <th style="min-width:100px;">Batch No</th>
+                        <th style="min-width:300px;">Supplier</th>
+                        <th class="text-end" style="width:80px;">Qty</th>
+                        <th class="text-end" style="min-width:100px;">Item Price</th>
+                        <th class="text-end" style="min-width:120px;">Stock Value</th>
+                        <th class="text-end" style="min-width:120px;">Expiry Date</th>
+                        <th class="text-end" style="min-width:120px;">Shipment Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.StockLines.Any())
+                    {
+                        <tr><td colspan="5" class="text-center py-3 text-muted">No active stock found for this team.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var r in Model.StockLines)
+                        {
+                            <tr>
+                                <td>@r.Description</td>
+                                <td>@r.BatchNo</td>
+                                <td>@r.SupName</td>
+                                <td class="text-end">@r.StockQty.ToString("N0")</td>
+                                <td class="text-end">@r.CostPrice.ToString("N2")</td>
+                                <td class="text-end fw-bold">@r.StockValue.ToString("N0")</td>
+                                <td class="text-end">@r.ExpiryDate?.ToString("yyyy-MM-dd")</td>
+                                <td class="text-end">@r.ShipmentDate?.ToString("yyyy-MM-dd")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="filterLoadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center" style="background: rgba(255,255,255,0.6); z-index: 1055;">
+    <div class="text-center">
+        <div class="spinner-border text-primary mb-2" role="status"></div>
+        <div class="fw-semibold small text-muted">Processing filters…</div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const itemInput = document.getElementById("filterItem");
+        const supInput = document.getElementById("filterSupplier");
+
+        const btnApply = document.getElementById("btnApplyFilters");
+        const btnClear = document.getElementById("btnClearFilters");
+        const loadingOverlay = document.getElementById("filterLoadingOverlay");
+        const SPINNER_DELAY_MS = 30;
+
+        function showLoading() { loadingOverlay?.classList.remove("d-none"); }
+        function hideLoading() { loadingOverlay?.classList.add("d-none"); }
+
+        // THE FIX: Adjusted column indices to perfectly match your HTML table
+        const cols = { item: 0, batch: 1, sup: 2, qty: 3, price: 4, val: 5 };
+
+        function buildRowCache(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return [];
+            const rows = Array.from(table.querySelectorAll("tbody tr"));
+
+            return rows
+                .filter(r => r.cells && r.cells.length > cols.val)
+                .map(r => {
+                    const itemRaw = (r.cells[cols.item].innerText || "").trim();
+                    const supRaw = (r.cells[cols.sup].innerText || "").trim();
+
+                    const qty = parseFloat((r.cells[cols.qty].innerText || "").replace(/[^-0-9.]/g, "")) || 0;
+                    const val = parseFloat((r.cells[cols.val].innerText || "").replace(/[^-0-9.]/g, "")) || 0;
+
+                    return {
+                        row: r,
+                        itemRaw, supRaw,
+                        item: itemRaw.toLowerCase(),
+                        sup: supRaw.toLowerCase(),
+                        qty, val
+                    };
+                });
+        }
+
+        const stockCache = buildRowCache("stockTable");
+
+        function fillDatalist(cache, getter, datalistId, limit = 400) {
+            const dl = document.getElementById(datalistId);
+            if (!dl) return;
+            const set = new Set();
+            for (const x of cache) {
+                const v = (getter(x) || "").trim();
+                if (v) set.add(v);
+                if (set.size >= limit) break;
+            }
+            dl.innerHTML = "";
+            Array.from(set).forEach(v => {
+                const opt = document.createElement("option");
+                opt.value = v;
+                dl.appendChild(opt);
+            });
+        }
+
+        function filterEverything() {
+            const itemF = (itemInput.value || "").toLowerCase();
+            const supF = (supInput.value || "").toLowerCase();
+
+            let runningQty = 0;
+            let runningVal = 0;
+
+            for (const x of stockCache) {
+                const ok = x.item.includes(itemF) && x.sup.includes(supF);
+
+                x.row.style.display = ok ? "" : "none";
+
+                if (ok) {
+                    runningQty += x.qty;
+                    runningVal += x.val;
+                }
+            }
+
+            document.getElementById("kpiTotalQty").innerText = runningQty.toLocaleString("en-US");
+            document.getElementById("kpiTotalValue").innerText = runningVal.toLocaleString("en-US");
+        }
+
+        function clearFilters() {
+            itemInput.value = "";
+            supInput.value = "";
+            filterEverything();
+        }
+
+        function triggerFilter(action) {
+            showLoading();
+            setTimeout(() => {
+                action();
+                hideLoading();
+            }, SPINNER_DELAY_MS);
+        }
+
+        btnApply?.addEventListener("click", () => triggerFilter(filterEverything));
+        btnClear?.addEventListener("click", () => triggerFilter(clearFilters));
+
+        [itemInput, supInput].forEach(i => {
+            i?.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    triggerFilter(filterEverything);
+                }
+            });
+        });
+
+        // Initialize autocomplete dropdowns
+        fillDatalist(stockCache, x => x.itemRaw, "itemList");
+        fillDatalist(stockCache, x => x.supRaw, "supList");
+    });
+</script>

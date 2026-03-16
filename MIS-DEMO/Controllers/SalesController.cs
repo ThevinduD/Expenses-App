@@ -34,7 +34,7 @@ namespace MIS_DEMO.Controllers
             var userName = HttpContext.Session.GetString("Username");
             var userType = HttpContext.Session.GetString("UserType");
             var salesRepCode = HttpContext.Session.GetString("SalesRepCode");
-            var teamCode = HttpContext.Session.GetString("TeamCode"); // ✅ add this
+            var teamCode = HttpContext.Session.GetString("TeamCode"); // add this
 
             ViewBag.TodayIso = _dateProvider.Today.ToString("yyyy-MM-dd");
 
@@ -557,7 +557,7 @@ namespace MIS_DEMO.Controllers
         }
 
         [HttpGet]
-        public IActionResult TeamMonthDetails(string locShort, string mode = "item", string? search = null)
+        public IActionResult TeamMonthDetails(string locShort, string mode = "item", string? search = null, int monthOffset = 0)
         {
             var userName = HttpContext.Session.GetString("Username");
             var userType = HttpContext.Session.GetString("UserType");
@@ -571,7 +571,8 @@ namespace MIS_DEMO.Controllers
             // Date range: this month
             // -----------------------
             var today = _dateProvider.Today;
-            var monthStart = new DateTime(today.Year, today.Month, 1);
+            var referenceDate = today.AddMonths(monthOffset);
+            var monthStart = new DateTime(referenceDate.Year, referenceDate.Month, 1);
             var monthEndExclusive = monthStart.AddMonths(1);
 
             // -----------------------
@@ -724,6 +725,9 @@ namespace MIS_DEMO.Controllers
                     Search = search,
                     Suggestions = itemSuggestions,
 
+                    MonthOffset = monthOffset,
+                    MonthLabel = monthStart.ToString("MMM yyyy"),
+
                     Columns = new List<string> { "Item", "Qty", "Net Total" },
 
                     NetTotal = rows.Sum(x => x.amt),
@@ -817,6 +821,9 @@ namespace MIS_DEMO.Controllers
                     Mode = mode,
                     Search = search,
                     Suggestions = repSuggestions,
+
+                    MonthOffset = monthOffset,
+                    MonthLabel = monthStart.ToString("MMM yyyy"),
 
                     Columns = new List<string> { "Rep", "Item", "Qty", "Net Total" },
 
@@ -915,6 +922,9 @@ namespace MIS_DEMO.Controllers
                     Mode = "customer",
                     Search = search,
                     Suggestions = cusSuggestions,
+
+                    MonthOffset = monthOffset,
+                    MonthLabel = monthStart.ToString("MMM yyyy"),
 
                     Columns = new List<string> { "Customer", "Item", "Rep", "Qty", "Net Total" },
 

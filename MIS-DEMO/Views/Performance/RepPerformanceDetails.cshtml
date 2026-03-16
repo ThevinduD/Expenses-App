@@ -1,0 +1,233 @@
+﻿@model MIS_DEMO.Models.ViewModels.RepPerformanceDetailsViewModel
+
+@{
+    ViewData["Title"] = $"Rep Performance - {Model.MonthLabel}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="fw-bold mb-0">Sales Rep Performance</h4>
+        <small class="text-muted">Filtered for @Model.MonthLabel</small>
+    </div>
+    <div class="text-end">
+        <a class="btn btn-sm btn-outline-secondary" asp-controller="Home" asp-action="Index">Back</a>
+    </div>
+</div>
+
+<div class="card mb-3 shadow-sm">
+    <div class="card-body p-2">
+        <div class="row g-2">
+            <div class="col-md-3">
+                <input type="text" id="filterTeam" class="form-control form-control-sm" placeholder="Search Team..." list="teamList" />
+                <datalist id="teamList"></datalist>
+            </div>
+            <div class="col-md-2">
+                <input type="text" id="filterCode" class="form-control form-control-sm" placeholder="Search Code..." list="codeList" />
+                <datalist id="codeList"></datalist>
+            </div>
+            <div class="col-md-3">
+                <input type="text" id="filterName" class="form-control form-control-sm" placeholder="Search Rep Name..." list="nameList" />
+                <datalist id="nameList"></datalist>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-sm btn-primary w-100" id="btnApplyFilters">Apply</button>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-sm btn-secondary w-100" id="btnClearFilters">Clear</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* <div class="row g-2 mb-3">
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body p-2 text-center">
+                <small class="text-muted fw-bold">Total Gross</small>
+                <div class="fs-5 fw-bold text-dark" id="kpiGross">@Model.TotalGross.ToString("N0")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body p-2 text-center">
+                <small class="text-muted fw-bold">Total Returns</small>
+                <div class="fs-5 fw-bold text-danger" id="kpiRet">@Model.TotalReturn.ToString("N0")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body p-2 text-center">
+                <small class="text-muted fw-bold">Total Net Sale</small>
+                <div class="fs-5 fw-bold text-primary" id="kpiNet">@Model.TotalNet.ToString("N0")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body p-2 text-center">
+                <small class="text-muted fw-bold">Total Target</small>
+                <div class="fs-5 fw-bold text-success" id="kpiTarget">@Model.TotalTarget.ToString("N0")</div>
+            </div>
+        </div>
+    </div>
+</div> *@
+
+<div class="card shadow-sm border-0 mt-2">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle mb-0 table-sm" id="repTable">
+                <thead class="table-light">
+                    <tr>
+                        <th style="min-width:70px;">Team</th>
+                        <th style="min-width:70px;">Code</th>
+                        <th style="min-width:150px;">Rep Name</th>
+                        <th style="min-width:100px;" class="text-end">Gross Sale</th>
+                        <th style="min-width:100px;" class="text-end">Returns</th>
+                        <th style="min-width:100px;" class="text-end">Net Sale</th>
+                        <th style="min-width:100px;" class="text-end">Target</th>
+                        <th style="min-width:90px;" class="text-end">Run Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Rows.Count == 0)
+                    {
+                        <tr><td colspan="8" class="text-center py-4 text-muted">No sales data found for this period.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var r in Model.Rows)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@r.Team</td>
+                                <td>@r.RepCode</td>
+                                <td>@r.RepName</td>
+                                <td class="text-end">@r.GrossSale.ToString("N0")</td>
+                                <td class="text-end">@r.ReturnSale.ToString("N0")</td>
+                                <td class="text-end fw-bold">@r.NetSale.ToString("N0")</td>
+                                <td class="text-end">@r.Target.ToString("N0")</td>
+                                <td class="text-end fw-bold @(r.RunRatePercent >= 100 ? "text-success" : "text-danger")">
+                                    @r.RunRatePercent.ToString("0.0")%
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const filterTeam = document.getElementById("filterTeam");
+            const filterCode = document.getElementById("filterCode");
+            const filterName = document.getElementById("filterName");
+
+            const btnApply = document.getElementById("btnApplyFilters");
+            const btnClear = document.getElementById("btnClearFilters");
+
+            const table = document.getElementById("repTable");
+            if (!table) return;
+
+            // Grab all rows from the table body
+            const tbody = table.querySelector("tbody");
+            const rows = Array.from(tbody.querySelectorAll("tr"));
+
+            // Column indices based on your HTML layout
+            const colTeam = 0, colCode = 1, colName = 2, colGross = 3, colRet = 4, colNet = 5, colTarget = 6;
+
+            // Build a fast cache of the data so we aren't querying the DOM on every keystroke
+            const cache = rows.filter(r => r.cells.length > 7).map(r => {
+                return {
+                    row: r,
+                    teamRaw: r.cells[colTeam].innerText.trim(),
+                    codeRaw: r.cells[colCode].innerText.trim(),
+                    nameRaw: r.cells[colName].innerText.trim(),
+
+                    // Parse the numbers (remove commas) so we can do math on them
+                    gross: parseFloat(r.cells[colGross].innerText.replace(/,/g, '')) || 0,
+                    ret: parseFloat(r.cells[colRet].innerText.replace(/,/g, '')) || 0,
+                    net: parseFloat(r.cells[colNet].innerText.replace(/,/g, '')) || 0,
+                    target: parseFloat(r.cells[colTarget].innerText.replace(/,/g, '')) || 0
+                };
+            });
+
+            // Function to populate datalists for autocomplete
+            function fillDatalist(getter, datalistId) {
+                const dl = document.getElementById(datalistId);
+                if (!dl) return;
+                const set = new Set();
+                cache.forEach(x => {
+                    const v = getter(x);
+                    if (v) set.add(v);
+                });
+                dl.innerHTML = "";
+                Array.from(set).sort().forEach(v => {
+                    const opt = document.createElement("option");
+                    opt.value = v;
+                    dl.appendChild(opt);
+                });
+            }
+
+            // Fill all three datalists automatically
+            fillDatalist(x => x.teamRaw, "teamList");
+            fillDatalist(x => x.codeRaw, "codeList");
+            fillDatalist(x => x.nameRaw, "nameList");
+
+            // The main filtering logic
+            function filterTable() {
+                const fTeam = filterTeam.value.toLowerCase();
+                const fCode = filterCode.value.toLowerCase();
+                const fName = filterName.value.toLowerCase();
+
+                let sumGross = 0, sumRet = 0, sumNet = 0, sumTarget = 0;
+
+                cache.forEach(x => {
+                    // Check if the row matches the search inputs
+                    const match = x.teamRaw.toLowerCase().includes(fTeam) &&
+                                  x.codeRaw.toLowerCase().includes(fCode) &&
+                                  x.nameRaw.toLowerCase().includes(fName);
+
+                    // Show or hide the row
+                    x.row.style.display = match ? "" : "none";
+
+                    // If it matches, add it to the running totals
+                    if (match) {
+                        sumGross += x.gross;
+                        sumRet += x.ret;
+                        sumNet += x.net;
+                        sumTarget += x.target;
+                    }
+                });
+
+                // Update the Top Summary Cards dynamically
+                document.getElementById("kpiGross").innerText = sumGross.toLocaleString("en-US", { maximumFractionDigits: 0 });
+                document.getElementById("kpiRet").innerText = sumRet.toLocaleString("en-US", { maximumFractionDigits: 0 });
+                document.getElementById("kpiNet").innerText = sumNet.toLocaleString("en-US", { maximumFractionDigits: 0 });
+                document.getElementById("kpiTarget").innerText = sumTarget.toLocaleString("en-US", { maximumFractionDigits: 0 });
+            }
+
+            // Hook up the buttons
+            btnApply.addEventListener("click", filterTable);
+            btnClear.addEventListener("click", () => {
+                filterTeam.value = "";
+                filterCode.value = "";
+                filterName.value = "";
+                filterTable();
+            });
+
+            // Allow the user to just press "Enter" in any field to apply the filter
+            [filterTeam, filterCode, filterName].forEach(input => {
+                input.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter") {
+                        e.preventDefault();
+                        filterTable();
+                    }
+                });
+            });
+        });
+    </script>
+}

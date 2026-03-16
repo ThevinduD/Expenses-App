@@ -1,0 +1,57 @@
+﻿@model MIS_DEMO.Models.ViewModels.TeamWiseSalesKpiViewModel
+
+<div class="card shadow-sm bg-teal text-white h-100">
+    <div class="card-body py-3 text-center">
+
+        <div class="d-flex justify-content-between align-items-center mb-2 px-2">
+            <button class="btn btn-sm btn-light text-teal px-2 py-0" onclick="loadTeamSalesKpi(@(Model.CurrentMonthOffset - 1))">
+                &laquo; Prev
+            </button>
+            <div class="fw-bold fs-5">Team Wise Sale</div>
+            <button class="btn btn-sm btn-light text-teal px-2 py-0"
+                    onclick="loadTeamSalesKpi(@(Model.CurrentMonthOffset + 1))"
+                    @(Model.CurrentMonthOffset >= 0 ? "disabled" : "")>
+                Next &raquo;
+            </button>
+        </div>
+
+        <table class="table table-borderless table-sm mb-0 mx-auto text-white" style="max-width:420px;">
+            <tbody>
+                <tr>
+                    <td class="fw-bold text-start text-warning" style="width:70px; color: var(--bs-warning) !important;">Team</td>
+                    <td class="fw-bold text-end text-warning" style="width:160px; color: var(--bs-warning) !important;">@Model.ThisMonthLabel</td>
+                    <td class="fw-bold text-end text-warning" style="width:160px; color: var(--bs-warning) !important;">@Model.LastMonthLabel</td>
+                    <td class="fw-bold text-end text-warning" style="width:70px; color: var(--bs-warning) !important;">Rate</td>
+                </tr>
+                @foreach (var t in Model.TeamWiseSales)
+                {
+                    <tr>
+                        <td class="fw-bold text-start" style="width:70px;">
+                            <a asp-controller="Sales" asp-action="TeamMonthDetails" asp-route-locShort="@t.LocShort" asp-route-monthOffset="@Model.CurrentMonthOffset" class="text-white">
+                                @t.LocShort
+                            </a>
+                        </td>
+                        <td class="fw-bold text-end" style="width:160px;">@t.ThisMonth.ToString("N0")</td>
+                        <td class="fw-bold text-end" style="width:160px;">@t.LastMonth.ToString("N0")</td>
+                        <td class="text-end text-warning" style="width:80px; color: var(--bs-warning) !important;">
+                            @t.RatePercent.ToString("0.0")%
+                        </td>
+                    </tr>
+                }
+                <tr class="border-top">
+                    <td class="fw-bold text-start text-warning" style="color: var(--bs-warning) !important;">TOTAL</td>
+                    <td class="fw-bold text-end">@Model.TeamWiseThisMonthTotal.ToString("N0")</td>
+                    <td class="fw-bold text-end">@Model.TeamWiseLastMonthTotal.ToString("N0")</td>
+                    <td class="text-end text-warning" style="color: var(--bs-warning) !important;">
+                        @{
+                            decimal rate = Model.TeamWiseLastMonthTotal <= 0
+                            ? (Model.TeamWiseThisMonthTotal > 0 ? 100 : 0)
+                            : Math.Round((Model.TeamWiseThisMonthTotal / Model.TeamWiseLastMonthTotal) * 100, 1);
+                        }
+                        @rate.ToString("0.0")%
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

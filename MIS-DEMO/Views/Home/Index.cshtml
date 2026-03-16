@@ -44,7 +44,7 @@
     </div>
 
     <div class="col-12 col-sm-6 col-lg-4 mb-3">
-        <div class="card text-white h-100" style="background-color:#343a40;">
+        <div class="card text-white h-100 bg-dark">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div class="w-100">
                     <div class="d-flex justify-content-between align-items-start">
@@ -72,73 +72,87 @@
                         <span class="kpi-currency"> LKR</span>
                     </div>
                 </div>
-
-
-                @* <div class="px-4">
-                    <a asp-controller="Sales"
-                       asp-action="Details"
-                       class="text-white"
-                       style="font-size: 1.3rem; font-weight: 600;">
-                        View
-                    </a>
-                </div> *@
             </div>
-
         </div>
     </div>
 
-    <div class="col-12 col-md-6 col-lg-4 mb-3">
-        <div class="card shadow-sm bg-teal text-white">
-            <div class="card-body py-3 px-2 text-center">
-                <div class="fw-bold fs-4 mb-2">Team Wise Sale</div>
+    <div class="col-12 col-sm-6 col-lg-4 mb-3">
+        <div class="card text-white h-100" style="background-color:#343a40;">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div class="w-100">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex flex-column">
+                            <h5 class="card-title">Delivered Invoices</h5>
+                            <h5 class="card-title">Primary</h5>
+                        </div>
 
-                <table class="table table-borderless table-sm mb-0 mx-auto text-white" style="max-width:420px;">
+                        <a asp-controller="Delivered"
+                           asp-action="Invoices"
+                           class="btn btn-sm rounded-2 bg-white"
+                           style="font-size: 1.2rem; font-weight: 700; text-decoration:none; color:#343a40;">
+                            View
+                        </a>
+                    </div>
+
+                    <p class="card-text kpi-number mb-0">
+                        @Model.ThisMonthDeliveredTotal.ToString("N0")
+                        <span class="kpi-currency">LKR</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-lg-4 mb-3" id="teamWiseSalesContainer">
+        <div class="card shadow-sm bg-teal text-white h-100 d-flex align-items-center justify-content-center py-5">
+            <div class="spinner-border text-light"></div>
+        </div>
+    </div>
+
+
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm bg-yellow border-0">
+            <div class="card-body text-center">
+
+                <div class="fw-bold fs-4 mb-2">Total Stock - Primary</div>
+
+                <table class="table table-borderless table-sm mb-0 mx-auto" style="max-width:420px;">
                     <tbody>
                         <tr>
-                            <td class="fw-bold text-start text-warning" style="width:70px; color: var(--bs-warning) !important;">Team</td>
-                            <td class="fw-bold text-end text-warning" style="width:160px; color: var(--bs-warning) !important;">This Month</td>
-                            <td class="fw-bold text-end text-warning" style="width:160px; color: var(--bs-warning) !important;">Last Month</td>
-                            <td class="fw-bold text-end text-warning" style="width:70px; color: var(--bs-warning) !important;">Rate</td>
+                            <td class="fw-bold text-start text-warning" style="width:80px; color:#212529 !important">Team</td>
+                            <td class="fw-bold text-end text-warning" style="width:150px; color:#212529 !important">Value</td>
+                            <td class="fw-bold text-end text-warning" style="width:150px; color:#212529 !important">Expiring&lt;60 </td>
                         </tr>
-                        @foreach (var t in Model.TeamWiseSales)
+                        @foreach (var t in Model.TeamStockValues)
                         {
                             <tr>
                                 <td class="fw-bold text-start" style="width:70px;">
-                                    <a asp-controller="Sales"
-                                       asp-action="TeamMonthDetails"
-                                       asp-route-locShort="@t.LocShort"
-                                       class="text-white text-decoration-none">
-                                        @t.LocShort
+                                    <a asp-controller="Stock" asp-action="TeamDetails" asp-route-teamCode="@t.TeamCode" asp-route-teamName="@t.TeamName" class="text-white">
+                                        @t.TeamName
                                     </a>
                                 </td>
-                                <td class="fw-bold text-end" style="width:160px;">@t.ThisMonth.ToString("N0")</td>
-                                <td class="fw-bold text-end" style="width:160px;">@t.LastMonth.ToString("N0")</td>
-                                <td class="text-end text-warning" style="width:80px; color: var(--bs-warning) !important;">
-                                    @t.RatePercent.ToString("0.0")%
-                                </td>
+                                <td class="fw-bold text-end" style="width:160px;">@t.StockValue.ToString("N0")</td>
+                                <td class="fw-bold text-end text-danger" style="width:160px; color:#8b0000 !important;">@t.ExpiringSoonValue.ToString("N0")</td>
                             </tr>
                         }
                         <tr class="border-top">
-                            <td class="fw-bold text-start text-warning" style="color: var(--bs-warning) !important;">TOTAL</td>
-                            <td class="fw-bold text-end">@Model.TeamWiseThisMonthTotal.ToString("N0")</td>
-                            <td class="fw-bold text-end">@Model.TeamWiseLastMonthTotal.ToString("N0")</td>
-                            <td class="text-end text-warning" style="color: var(--bs-warning) !important;">
-                                @{
-                                    decimal rate =
-                                    Model.TeamWiseLastMonthTotal <= 0
-                                    ? (Model.TeamWiseThisMonthTotal > 0 ? 100 : 0)
-                                    : Math.Round((Model.TeamWiseThisMonthTotal / Model.TeamWiseLastMonthTotal) * 100, 1);
-                                }
-                                @rate.ToString("0.0")%
+                            <td class="fw-bold text-start" style="color:#212529 !important">TOTAL</td>
+                            <td class="fw-bold text-end">@Model.TotalStockValue.ToString("N0")</td>
+                            <td class="fw-bold text-end text-danger" style="color:#8b0000 !important;">
+                                @Model.TotalExpiringSoonValue.ToString("N0")
                             </td>
                         </tr>
                     </tbody>
                 </table>
-
             </div>
         </div>
     </div>
 
+    <div class="col-12 col-md-6 col-lg-4 mb-3" id="topPerformersContainer">
+        <div class="card shadow-sm border-0 h-100 d-flex align-items-center justify-content-center py-5" style="background-color: whitesmoke;">
+            <div class="spinner-border text-secondary"></div>
+        </div>
+    </div>
 
 
     <div class="col-12 col-sm-6 col-lg-4 mb-3">
@@ -153,12 +167,12 @@
                 </div>
 
                 <div class="px-4">
-                    <a asp-controller="Sales"
+                    @* <a asp-controller="Sales"
                        asp-action="Details"
                        class="text-white"
                        style="font-size: 1.3rem; font-weight: 600;">
                         View
-                    </a>
+                    </a> *@
                 </div>
             </div>
 
@@ -177,12 +191,12 @@
                 </div>
 
                 <div class="px-4">
-                    <a asp-controller="Sales"
+                    @* <a asp-controller="Sales"
                        asp-action="Details"
                        class="text-white"
                        style="font-size: 1.3rem; font-weight: 600;">
                         View
-                    </a>
+                    </a> *@
                 </div>
             </div>
         </div>
@@ -197,36 +211,63 @@
                 </div>
 
                 <div class="px-4">
-                    <a asp-controller="Sales"
+                    @* <a asp-controller="Sales"
                        asp-action="Details"
                        class="text-white"
                        style="font-size: 1.3rem; font-weight: 600;">
                         View
-                    </a>
+                    </a> *@
                 </div>
             </div>
         </div>
     </div>
-
-
-    @* <div class="col-12 col-sm-6 col-lg-3 mb-3">
-        <div class="card text-white h-100" style="background-color: #FF6B00;">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title">Expiring Soon</h5>
-                    <p class="card-text kpi-number">0 <span class="kpi-currency">Items</span></p>
-                </div>
-
-                <div class="px-4">
-                    <a asp-controller="Sales"
-                       asp-action="Details"
-                       class="text-white"
-                       style="font-size: 1.3rem; font-weight: 600;">
-                        View
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div> *@
-
 </div>
+
+
+@section Scripts {
+    <script>
+        // Function to fetch the partial view and inject it into the container
+        function loadTeamSalesKpi(offset) {
+            const container = document.getElementById('teamWiseSalesContainer');
+
+            // THE FIX: Changed 'Dashboard' to 'Home' to match your HomeController
+            fetch(`/Home/LoadTeamWiseSalesKpi?monthOffset=${offset}`)
+                .then(response => {
+                    if (!response.ok) throw new Error("Network response was not ok");
+                    return response.text();
+                })
+                .then(html => {
+                    container.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error("Failed to load KPI", err);
+                    container.innerHTML = `<div class="text-danger text-center p-3">Failed to load data.</div>`;
+                });
+        }
+
+        // NEW: Function to load the Top Performers KPI
+        function loadTopPerformersKpi(offset, isTop = true) {
+            const container = document.getElementById('topPerformersContainer');
+
+            // UPDATED: Attach the isTop value to the URL
+            fetch(`/Home/LoadTopPerformersKpi?monthOffset=${offset}&isTop=${isTop}`)
+                .then(response => {
+                    if (!response.ok) throw new Error("Network response was not ok");
+                    return response.text();
+                })
+                .then(html => {
+                    container.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error("Failed to load Top Performers KPI", err);
+                    container.innerHTML = `<div class="text-danger text-center p-3">Failed to load data.</div>`;
+                });
+        }
+
+        // Automatically load the current month (offset 0) when the page loads
+        document.addEventListener("DOMContentLoaded", function () {
+            loadTeamSalesKpi(0);
+            loadTopPerformersKpi(0);
+        });
+    </script>
+}

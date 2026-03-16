@@ -11,6 +11,8 @@
         public string? Search { get; set; }
 
         public decimal NetTotal { get; set; }
+        public int MonthOffset { get; set; }
+        public string MonthLabel { get; set; }
 
         // Columns for table
         public List<string> Columns { get; set; } = new();

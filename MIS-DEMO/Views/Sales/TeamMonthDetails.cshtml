@@ -1,7 +1,8 @@
 ﻿@model MIS_DEMO.Models.ViewModels.TeamMonthDetailsViewModel
 
 @{
-    ViewData["Title"] = "Team Sales (This Month)";
+    // 1. Title now shows the dynamic month (e.g. "Jan 2026")
+    ViewData["Title"] = $"Team Sales ({Model.MonthLabel})";
     string ModeLabel(string m) => (m ?? "item").ToLower() switch
     {
         "rep" => "Rep",
@@ -12,13 +13,23 @@
 
 <div class="d-flex justify-content-between align-items-center mb-2">
     <div>
-        <h4 class="fw-bold mb-0">Team @Model.LocShort - This Month (NET)</h4>
+        <h4 class="fw-bold mb-0">@Model.LocShort - @Model.MonthLabel (NET)</h4>
         <small class="text-muted">Mode: @ModeLabel(Model.Mode)</small>
+    </div>
+    <div class="text-end">
+        <a class="btn btn-sm btn-outline-secondary"
+           asp-controller="Home"
+           asp-action="Index">
+            Back
+        </a>
     </div>
 </div>
 
 <form method="get" asp-controller="Sales" asp-action="TeamMonthDetails" class="card mb-3 shadow-sm">
     <input type="hidden" name="locShort" value="@Model.LocShort" />
+
+    <input type="hidden" name="monthOffset" value="@Model.MonthOffset" />
+
     <div class="card-body p-2">
         <div class="row g-2 align-items-end">
             <div class="col-12 col-md-2">
@@ -76,7 +87,8 @@
                    asp-controller="Sales"
                    asp-action="TeamMonthDetails"
                    asp-route-locShort="@Model.LocShort"
-                   asp-route-mode="@Model.Mode">
+                   asp-route-mode="@Model.Mode"
+                   asp-route-monthOffset="@Model.MonthOffset">
                     Clear Search
                 </a>
             </div>

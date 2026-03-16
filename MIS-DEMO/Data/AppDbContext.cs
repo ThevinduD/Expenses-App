@@ -32,9 +32,9 @@ namespace MIS_DEMO.Data
         public DbSet<WkfMapAsmDir> WKF_MAP_ASM_DIR { get; set; }
         public DbSet<CustomerInvoiceMain> CUSTOMER_INVOICE_MAIN { get; set; }
         public DbSet<TeamMis> TEAM_MIS { get; set; }
-
-
-
-
+        public DbSet<StockTeamValue> VW_STOCK_TEAM_VALUE { get; set; }
+        public DbSet<SupplierAsm> SUPPLIER_ASM { get; set; }
+        public DbSet<DirSupMap> DIR_SUP_MAP { get; set; }
+        public DbSet<TargetMonthsRepSpecial> TARGET_MONTHS_REP_SPECIAL { get; set; }
     }
 }
