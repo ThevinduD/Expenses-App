@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MIS_DEMO.Data;
-using MIS_DEMO.Models; // <-- Added to reference the LoginLog class
+using MIS_DEMO.Models; 
 using System;
 
 namespace MIS_DEMO.Controllers
@@ -62,13 +62,12 @@ namespace MIS_DEMO.Controllers
             // ==========================================
             try
             {
-                // Safely extract IP and User Agent
                 string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
                 string userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
                 var loginLog = new LoginLog
                 {
-                    Username = user.UserName, // Using the validated DB username
+                    Username = user.UserName, 
                     RealName = user.Description ?? "Unknown",
                     LoginTime = DateTime.Now,
                     IpAddress = ipAddress,
@@ -80,8 +79,7 @@ namespace MIS_DEMO.Controllers
             }
             catch (Exception ex)
             {
-                // If logging fails (e.g. DB table locked), swallow the error so 
-                // the user can still log into the dashboard successfully.
+
                 Console.WriteLine($"Login Audit Failed: {ex.Message}");
             }
             // ==========================================

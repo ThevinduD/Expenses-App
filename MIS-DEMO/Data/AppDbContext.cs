@@ -54,5 +54,7 @@ namespace MIS_DEMO.Data
         public DbSet<AppLink> LINKS { get; set; }
         public DbSet<WkfMapRepAsmMis> WKF_MAP_REP_ASM_MIS { get; set; }
         public DbSet<SalesRep> SALES_REP { get; set; }
+        public DbSet<ExpenseMaster> ExpenseMasters { get; set; }
+        public DbSet<ItineraryMaster> ItineraryMasters { get; set; }
     }
 }

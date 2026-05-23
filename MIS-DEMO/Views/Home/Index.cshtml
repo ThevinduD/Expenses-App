@@ -1,392 +1,210 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Dashboard";
 }
 
-<h2>Dashboard</h2>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-<!-- KPI Cards -->
-<div class="row mt-4">
-    <div class="col-12 col-sm-6 col-lg-4 mb-3" id="salesKpiContainer">
-        <div class="card bg-primary border-0 h-100 d-flex align-items-center justify-content-center py-5">
-            <div class="spinner-border text-light" role="status"></div>
-        </div>
-    </div>
+<style>
+    .dashboard-btn {
+        min-height: 80px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: none;
+        color: #fff;
+    }
 
-    <div class="col-12 col-md-4 mb-3" id="collectionKpiContainer">
-        <div class="card border-0 h-100 d-flex align-items-center justify-content-center py-5" style="background-color: #1e3a8a;">
-            <div class="spinner-border text-light" role="status"></div>
-        </div>
-    </div>
+        .dashboard-btn i {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
 
-    <div class="col-12 col-md-6 col-lg-4 mb-3" id="outstandingKpiContainer">
-        <div class="card shadow-sm border-0 h-100 d-flex align-items-center justify-content-center py-5" style="background-color: #3b7bbd;">
-            <div class="spinner-border text-light"></div>
-        </div>
-    </div>
+    .btn-blue {
+        background-color: #0d6efd;
+    }
 
-    <div class="col-12 col-sm-6 col-lg-4 mb-3" id="nonDeliveredKpiContainer">
-        <div class="card bg-dark border-0 h-100 d-flex align-items-center justify-content-center py-5">
-            <div class="spinner-border text-secondary" role="status"></div>
-        </div>
-    </div>
+    .btn-green {
+        background-color: #198754;
+    }
 
-    <div class="col-12 col-sm-6 col-lg-4 mb-3" id="deliveredKpiContainer">
-        <div class="card border-0 h-100 d-flex align-items-center justify-content-center py-5" style="background-color: #343a40;">
-            <div class="spinner-border text-secondary" role="status"></div>
-        </div>
-    </div>
+    .btn-teal {
+        background-color: #20c997;
+    }
 
-    <div class="col-12 col-md-6 col-lg-4 mb-3" id="teamWiseSalesContainer">
-        <div class="card shadow-sm bg-teal text-white h-100 d-flex align-items-center justify-content-center py-5">
-            <div class="spinner-border text-light"></div>
-        </div>
-    </div>
+    .btn-beige {
+        background-color: #d4a373;
+    }
 
+    .btn-orange {
+        background-color: #fd7e14;
+    }
 
-    <div class="col-md-3 mb-3">
-        <div class="card shadow-sm bg-yellow border-0">
-            <div class="card-body text-center">
+    .btn-lightblue {
+        background-color: #0dcaf0;
+    }
 
-                <div class="fw-bold fs-4 mb-2">Stock KPI</div>
+    .btn-yellow {
+        background-color: #ffc107;
+        color: #000;
+    }
 
-                <table class="table table-borderless table-sm mb-0 mx-auto" style="max-width:420px;">
-                    <tbody>
-                        <tr>
-                            <td class="fw-bold text-start text-warning" style="width:80px; color:#212529 !important">Team</td>
-                            <td class="fw-bold text-end text-warning" style="width:150px; color:#212529 !important">Value</td>
-                            <td class="fw-bold text-end text-warning" style="width:150px; color:#212529 !important">Expiring&lt;60 </td>
-                        </tr>
-                        @foreach (var t in Model.TeamStockValues)
-                        {
-                            <tr>
-                                <td class="fw-bold text-start" style="width:70px;">
-                                    <a asp-controller="Stock" asp-action="TeamDetails" asp-route-teamCode="@t.TeamCode" asp-route-teamName="@t.TeamName" class="text-white">
-                                        @t.TeamName
-                                    </a>
-                                </td>
-                                <td class="fw-bold text-end" style="width:160px;">@t.StockValue.ToString("N0")</td>
-                                <td class="fw-bold text-end text-danger" style="width:160px; color:#8b0000 !important;">@t.ExpiringSoonValue.ToString("N0")</td>
-                            </tr>
-                        }
-                        <tr class="border-top">
-                            <td class="fw-bold text-start" style="color:#212529 !important">TOTAL</td>
-                            <td class="fw-bold text-end">@Model.TotalStockValue.ToString("N0")</td>
-                            <td class="fw-bold text-end text-danger" style="color:#8b0000 !important;">
-                                @Model.TotalExpiringSoonValue.ToString("N0")
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+    .btn-pink {
+        background-color: #d63384;
+    }
+
+    .btn-red {
+        background-color: #dc3545;
+    }
+
+    .progress-black {
+        background-color: #212529;
+    }
+
+    .progress-red {
+        background-color: #8b0000;
+    }
+
+    .progress-purple {
+        background-color: #6f42c1;
+    }
+
+    .progress-green {
+        background-color: #198754;
+    }
+
+    .kpi-label {
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="container-fluid py-3">
+
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body bg-light rounded">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">User Detail</h6>
+                    <h5 class="mb-0 fw-bold text-dark">
+                        @Context.Session.GetString("RealName") -
+                        <span class="">@Context.Session.GetString("SalesRepCode")</span>
+                    </h5>
+                </div>
+                <div class="text-end text-muted small">
+                    <div id="currentDate" class="fw-bold mb-1"></div>
+                    <div id="currentTime"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-12 col-md-6 col-lg-4 mb-3" id="topStockItemsContainer">
-        <div class="card shadow-sm bg-pink h-100 d-flex align-items-center justify-content-center py-5">
-            <div class="spinner-border text-danger" role="status"></div>
+    <div class="row g-3 mb-5 mt-2">
+        @* <div class="col-6 col-md-4 col-lg-3">
+            <button class="btn dashboard-btn btn-blue w-100 shadow-sm"><i class="bi bi-receipt"></i> Generate Invoice</button>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+            <button class="btn dashboard-btn btn-green w-100 shadow-sm"><i class="bi bi-file-earmark-text"></i> View Invoice</button>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+            <button class="btn dashboard-btn btn-teal w-100 shadow-sm"><i class="bi bi-arrow-return-left"></i> View Return</button>
+        </div> *@
+        <div class="col-6 col-md-4 col-lg-3">
+            <a asp-controller="Itinerary" asp-action="Itinerary" class="btn dashboard-btn btn-blue w-100 shadow-sm text-decoration-none">
+                <i class="bi bi-map"></i> Itinerary
+            </a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+            <a asp-controller="Expenses" asp-action="ExpensesEntry" class="btn dashboard-btn btn-green w-100 shadow-sm text-decoration-none">
+                <i class="bi bi-wallet2"></i> Expenses Entry
+            </a>
+        </div>
+        @* <div class="col-6 col-md-4 col-lg-3">
+            <button class="btn dashboard-btn btn-lightblue w-100 shadow-sm"><i class="bi bi-box-seam"></i> Stock W/ S</button>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+            <button class="btn dashboard-btn btn-blue w-100 shadow-sm"><i class="bi bi-bar-chart-steps"></i> Stock vs Sales</button>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+            <button class="btn dashboard-btn btn-yellow w-100 shadow-sm"><i class="bi bi-info-circle"></i> Sales Info..</button>
+        </div> *@
+        <div class="col-6 col-md-4 col-lg-3">
+            <a asp-controller="DayClose" asp-action="DayClose" class="btn dashboard-btn btn-pink w-100 shadow-sm text-decoration-none">
+                <i class="bi bi-moon-stars"></i> Day Close
+            </a>
+        </div>
+        
+        <div class="col-6 col-md-4 col-lg-3">
+            <form asp-controller="Account" asp-action="Logout" method="post" class="w-100">
+                <button type="submit" class="btn dashboard-btn btn-red w-100 shadow-sm"><i class="bi bi-power"></i> Close App</button>
+            </form>
         </div>
     </div>
 
-    <div class="col-12 col-md-6 col-lg-4 mb-3" id="topPerformersContainer">
-        <div class="card shadow-sm border-0 h-100 d-flex align-items-center justify-content-center py-5" style="background-color: whitesmoke;">
-            <div class="spinner-border text-secondary"></div>
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+            <h5 class="fw-bold text-dark"><i class="bi bi-graph-up-arrow text-primary"></i> Sales Performance</h5>
         </div>
-    </div>
-
-    
-
-    <div class="col-12 col-md-4 mb-3" id="loginKpiContainer">
-        <div class="card border-0 h-100 d-flex align-items-center justify-content-center py-5" style="background-color: #0d9488;">
-            <div class="spinner-border text-light" role="status"></div>
-        </div>
-    </div>
-
-    
-
-
-    <!-- Dynamic Links Widget -->
-    @* <div class="card shadow-sm border-0 mt-4" style="background-color: #f8fafc;">
-        <div class="card-header bg-transparent border-0 pb-0 px-3">
-            <div class="fw-bold fs-5 text-dark" style="line-height: 1;">Quick Links</div>
-            
-        </div>
-
         <div class="card-body">
-            <table class="table table-hover table-borderless align-middle mb-0">
-                <tbody>
-                    @if (ViewBag.DashboardLinks != null)
-                    {
-                        foreach (var link in ViewBag.DashboardLinks)
-                        {
-                            <tr class="border-bottom" style="border-color: #e2e8f0 !important;">
-                                <td class="text-start fw-bold text-dark ps-2">
-                                    <i class="bi bi-link-45deg text-primary me-2 fs-5 align-middle"></i>
-                                    @link.LinkName
-                                </td>
-                                <td>
-                                    <!-- The button pulls the Url directly from the DB -->
-                                    <a href="@link.Url" class="btn btn-sm btn-outline-primary px-2 shadow-sm fw-semibold">
-                                        View <i class="bi bi-arrow-right-short align-middle ms-1" style="font-size: 1.1rem;"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td class="text-center text-muted py-2">No links available.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="kpi-label">Sales vs To be Sales</span>
+                    <span class="fw-bold">0 / 0</span>
+                </div>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar progress-black" role="progressbar" style="width: 10%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0</div>
+                    <div class="progress-bar progress-red w-100 text-end pe-2" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">0</div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="kpi-label">Up to Date</span>
+                    <span class="fw-bold text-success">0</span>
+                </div>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar progress-green w-100 text-end pe-2" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">0</div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="kpi-label">Last Month</span>
+                    <span class="fw-bold" style="color: #6f42c1;">0</span>
+                </div>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar progress-purple w-100 text-end pe-2" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">0</div>
+                </div>
+            </div>
+
         </div>
-    </div> *@
-
-    
+    </div>
 </div>
-
 
 @section Scripts {
     <script>
-        // Function to fetch the partial view and inject it into the container
-        function loadTeamSalesKpi(offset) {
-            const container = document.getElementById('teamWiseSalesContainer');
+        function updateDateTime() {
+            const now = new Date();
 
-            // THE FIX: Changed 'Dashboard' to 'Home' to match your HomeController
-            fetch(`/Home/LoadTeamWiseSalesKpi?monthOffset=${offset}`)
-                .then(response => {
-                    if (!response.ok) throw new Error("Network response was not ok");
-                    return response.text();
-                })
-                .then(html => {
-                    container.innerHTML = html;
-                })
-                .catch(err => {
-                    console.error("Failed to load KPI", err);
-                    container.innerHTML = `<div class="text-danger text-center p-3">Failed to load data.</div>`;
-                });
+            // Format Date (e.g., May-16-2026)
+            const dateOptions = { month: 'short', day: '2-digit', year: 'numeric' };
+            const formattedDate = now.toLocaleDateString('en-US', dateOptions).replace(/,/g, '').replace(/ /g, '-');
+
+            // Format Time (e.g., 08:33 AM)
+            const timeOptions = { hour: '2-digit', minute: '2-digit' };
+            const formattedTime = now.toLocaleTimeString('en-US', timeOptions);
+
+            document.getElementById('currentDate').innerText = formattedDate;
+            document.getElementById('currentTime').innerText = formattedTime;
         }
 
-        // NEW: Function to load the Top Performers KPI
-        function loadTopPerformersKpi(offset, isTop = true) {
-            const container = document.getElementById('topPerformersContainer');
-
-            // UPDATED: Attach the isTop value to the URL
-            fetch(`/Home/LoadTopPerformersKpi?monthOffset=${offset}&isTop=${isTop}`)
-                .then(response => {
-                    if (!response.ok) throw new Error("Network response was not ok");
-                    return response.text();
-                })
-                .then(html => {
-                    container.innerHTML = html;
-                })
-                .catch(err => {
-                    console.error("Failed to load Top Performers KPI", err);
-                    container.innerHTML = `<div class="text-danger text-center p-3">Failed to load data.</div>`;
-                });
-        }
-
-        function reloadOutstandingKpi() {
-            const container = document.getElementById('outstandingKpiContainer');
-
-            // 1. Grab the NEW team value (default to 'All' if it can't find it)
-            const team = document.getElementById('outTeam')?.value || 'All';
-
-            // Grab your existing dropdown values
-            const type = document.getElementById('outInvoiceType')?.value || '';
-            const range = document.getElementById('outRangeDays')?.value || '';
-            const mode = document.getElementById('outPdMode')?.value || '';
-
-            // 2. Add the team to the fetch URL
-            const url = `/Home/LoadOutstandingKpi?team=${encodeURIComponent(team)}&invoiceType=${encodeURIComponent(type)}&rangeDays=${range}&pdMode=${encodeURIComponent(mode)}`;
-
-            fetch(url)
-                .then(res => {
-                    if (!res.ok) throw new Error("Network response was not ok");
-                    return res.text();
-                })
-                .then(html => {
-                    container.innerHTML = html;
-                })
-                .catch(err => {
-                    console.error("Failed to load Outstanding KPI", err);
-                    container.innerHTML = `<div class="text-white text-center p-3">Failed to load data.</div>`;
-                });
-        }
-
-        function goToOutstandingDetails() {
-            // 1. Grab the NEW team value here too
-            const team = document.getElementById('outTeam')?.value || 'All';
-
-            // Read the current state of the existing dashboard dropdowns
-            const type = document.getElementById('outInvoiceType')?.value || '';
-            const range = document.getElementById('outRangeDays')?.value || '';
-            const mode = document.getElementById('outPdMode')?.value || '';
-
-            // 2. Add the team to the redirect URL
-            const url = `/Outstanding/HierarchySummary?invoiceType=${encodeURIComponent(type)}&rangeDays=${range}&pdMode=${encodeURIComponent(mode)}&team=${encodeURIComponent(team)}`;
-
-            window.location.href = url;
-        }
-
-        function reloadNonDeliveredKpi() {
-            const container = document.getElementById('nonDeliveredKpiContainer');
-            const team = document.getElementById('ndTeam')?.value || 'All';
-            const rangeDays = document.getElementById('ndDays')?.value || '';
-            const category = document.getElementById('ndCategory')?.value || 'All'; // <-- Get Category
-
-            let url = `/Home/LoadNonDeliveredKpi?team=${encodeURIComponent(team)}&category=${encodeURIComponent(category)}`; // <-- Attach Category
-            if (rangeDays) {
-                url += `&rangeDays=${rangeDays}`;
-            }
-
-            fetch(url)
-                .then(res => res.text())
-                .then(html => container.innerHTML = html)
-                .catch(err => console.error("Failed to load Non-Delivered KPI", err));
-        }
-
-        function passNonDeliveredFilters(event) {
-            event.preventDefault(); // Stop standard button click
-
-            const team = document.getElementById('ndTeam')?.value || 'All';
-            const range = document.getElementById('ndDays')?.value || '';
-
-            // Redirect to the NonDelivered Controller, passing the parameters
-            window.location.href = `/NonDelivered/Invoices?team=${encodeURIComponent(team)}&rangeDays=${range}`;
-        }
-
-        function reloadDeliveredKpi() {
-            const container = document.getElementById('deliveredKpiContainer');
-            const team = document.getElementById('delTeam')?.value || 'All';
-            const category = document.getElementById('delCategory')?.value || 'All'; // <-- Get Category
-
-            let url = `/Home/LoadDeliveredKpi?team=${encodeURIComponent(team)}&category=${encodeURIComponent(category)}`; // <-- Attach Category
-
-            fetch(url)
-                .then(res => res.text())
-                .then(html => container.innerHTML = html)
-                .catch(err => console.error("Failed to load Delivered KPI", err));
-        }
-
-        function passDeliveredFilters(event) {
-            event.preventDefault(); // Stop standard redirect
-            const team = document.getElementById('delTeam')?.value || 'All';
-
-            // Redirect to the Delivered Controller, passing the exact team
-            window.location.href = `/Delivered/Invoices?team=${encodeURIComponent(team)}`;
-        }
-
-        function reloadSalesKpi() {
-            const container = document.getElementById('salesKpiContainer');
-            const team = document.getElementById('salesTeam')?.value || 'All';
-            const dateStr = document.getElementById('salesDate')?.value || '';
-            const category = document.getElementById('salesCategory')?.value || 'All'; // <-- Get Category
-
-            let url = `/Home/LoadSalesKpi?team=${encodeURIComponent(team)}&category=${encodeURIComponent(category)}`; // <-- Attach Category
-            if (dateStr) {
-                url += `&filterDate=${dateStr}`;
-            }
-
-            fetch(url)
-                .then(res => res.text())
-                .then(html => container.innerHTML = html)
-                .catch(err => console.error("Failed to load Sales KPI", err));
-        }
-
-        function passSalesFilters(event) {
-            event.preventDefault();
-            const team = document.getElementById('salesTeam')?.value || 'All';
-            const dateStr = document.getElementById('salesDate')?.value || '';
-
-            let url = `/Sales/Details?team=${encodeURIComponent(team)}`;
-            if (dateStr) {
-                url += `&filterDate=${dateStr}`;
-            }
-
-            window.location.href = url;
-        }
-
-        function reloadTopStockItemsKpi() {
-            const container = document.getElementById('topStockItemsContainer');
-
-            fetch(`/Home/LoadTopStockItemsKpi`)
-                .then(res => {
-                    if (!res.ok) throw new Error("Failed to load");
-                    return res.text();
-                })
-                .then(html => {
-                    container.innerHTML = html;
-                })
-                .catch(err => {
-                    console.error(err);
-                    container.innerHTML = `<div class="card bg-danger text-white p-3 h-100 d-flex align-items-center justify-content-center">Failed to load Top Items</div>`;
-                });
-        }
-
-        function reloadLoginKpi() {
-            const container = document.getElementById('loginKpiContainer');
-
-            fetch(`/Home/LoadLoginKpi`)
-                .then(res => {
-                    if (!res.ok) throw new Error("Failed to load");
-                    return res.text();
-                })
-                .then(html => {
-                    container.innerHTML = html;
-                })
-                .catch(err => {
-                    console.error(err);
-                    container.innerHTML = `<div class="card text-white p-3 h-100 d-flex align-items-center justify-content-center" style="background-color: #0d9488;">Failed to load Logins</div>`;
-                });
-        }
-
-        function reloadCollectionKpi() {
-            const container = document.getElementById('collectionKpiContainer');
-
-            // Existing Top fields
-            const date = document.getElementById('colDate')?.value || '';
-            const team = document.getElementById('colTeam')?.value || 'All';
-            const cat = document.getElementById('colCategory')?.value || 'All';
-
-            // New Bottom fields
-            const outMode = document.getElementById('outMode')?.value || '';
-            const freezeMode = document.getElementById('freezeMode')?.value || '';
-
-            const url = `/Home/LoadCollectionKpi?team=${encodeURIComponent(team)}&filterDate=${date}&category=${encodeURIComponent(cat)}&outMode=${encodeURIComponent(outMode)}&freezeMode=${encodeURIComponent(freezeMode)}`;
-
-            fetch(url)
-                .then(res => res.text())
-                .then(html => container.innerHTML = html)
-                .catch(err => console.error(err));
-        }
-
-        function passCollectionFilters(event) {
-            event.preventDefault();
-            const team = document.getElementById('colTeam')?.value || 'All';
-            const dateStr = document.getElementById('colDate')?.value || '';
-
-            let url = `/Collection/Details?team=${encodeURIComponent(team)}`;
-            if (dateStr) {
-                url += `&filterDate=${dateStr}`;
-            }
-
-            window.location.href = url;
-        }
-
-
-        // Automatically load the current month (offset 0) when the page loads
-        document.addEventListener("DOMContentLoaded", function () {
-            loadTeamSalesKpi(0);
-            loadTopPerformersKpi(0);
-            reloadOutstandingKpi();
-            reloadNonDeliveredKpi();
-            reloadDeliveredKpi();
-            reloadSalesKpi();
-            reloadTopStockItemsKpi();
-            reloadLoginKpi();
-            reloadCollectionKpi();
-        });
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
     </script>
 }

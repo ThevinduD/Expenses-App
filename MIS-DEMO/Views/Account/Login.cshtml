@@ -17,7 +17,7 @@
             background: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url('/images/LoginImg.jpg');
             background-size: cover;
             background-repeat: no-repeat;
-            background-position: center; /* good for desktop */
+            background-position: center; 
         }
 
         @@media (max-width: 576px) {
@@ -26,15 +26,15 @@
                 background: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url('/images/LoginImgM.jpg');
                 background-size: cover;
                 background-repeat: no-repeat;
-                background-position: center; /* good for desktop */
+                background-position: center; 
                 }
 
         }
 
         .login-logo {
-            max-width: 150px; /* control size */
+            max-width: 150px; 
             width: 100%;
-            height: auto; /* keep aspect ratio */
+            height: auto; 
         }
 
         .login-card {
@@ -52,7 +52,7 @@
             <img src="/images/logo.jpg"
                  class="login-logo mx-auto d-block mb-3"
                  alt="Cliniqon Biotech" />
-            <h3 class="text-center mb-2">Cliniqon Biotech MIS</h3>
+            <h3 class="text-center mb-2">Cliniqon Biotech - Field Expenses App</h3>
             <p class="text-center text-muted">Sign in to continue</p>
 
             @if (ViewBag.Error != null)

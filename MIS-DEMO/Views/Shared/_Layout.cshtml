@@ -13,22 +13,20 @@
     
     <style>
         body {
-            padding-top: 56px;
+            padding-top: 45px;
             background-color: #f8fafc;
         }
 
         /* Main content */
         .content {
-            padding: 20px;
-            padding-left: 40px;
-            padding-right: 40px;
+            padding: 0px 10px; 
         }
 
         /* Mobile adjustments */
         @@media (max-width: 991.98px) {
             .content {
                 margin-left: 0;
-                padding: 15px;
+                padding: 10px;
             }
         }
 
@@ -56,11 +54,10 @@
 
         .kpi-container {
             display: flex;
-            align-items: baseline; /* Aligns text along the bottom edge */
-            gap: 10px; /* Adds space between the elements */
+            align-items: baseline; 
+            gap: 10px; 
         }
 
-            /* Remove default margins that push elements apart */
             .kpi-container h5,
             .kpi-container p {
                 margin: 0;
@@ -90,12 +87,12 @@
         }
 
         .bg-teal .table > :not(caption) > * > * {
-            color: #ffffff !important; /* force table text white */
+            color: #ffffff !important; 
             background-color: transparent !important;
         }
 
         .bg-yellow {
-            background-color: #a97142 !important; /* modern teal */
+            background-color: #a97142 !important; 
         }
 
         .bg-yellow .table > :not(caption) > * > * {
@@ -179,7 +176,7 @@
             <a class="navbar-brand mx-lg-2"
                asp-controller="Home"
                asp-action="Index">
-                Cliniqon Biotech MIS - PR
+                Cliniqon Biotech
             </a>
 
             <button class="navbar-toggler" type="button" id="sidebarToggle">

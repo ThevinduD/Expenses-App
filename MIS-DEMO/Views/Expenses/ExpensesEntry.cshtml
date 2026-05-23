@@ -1,0 +1,376 @@
+﻿@{
+    ViewData["Title"] = "Expenses Entry";
+}
+
+<style>
+    .shortcut-btn {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+        font-weight: 600;
+    }
+
+    .status-card {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+    }
+
+    .sticky-bottom-actions {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding-top: 15px;
+        padding-bottom: 15px;
+        border-top: 1px solid #eee;
+        z-index: 1000;
+    }
+</style>
+
+<div class="container-fluid pt-2 pb-4 px-2 px-md-4">
+
+    <div class="d-flex justify-content-between align-items-center my-3">
+        <h4 class="fw-bold text-dark mb-0"><i class="bi bi-wallet2 text-orange"></i> Expenses Entry</h4>
+        <a href="javascript:history.back()" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <form id="expenseForm">
+                        <input type="hidden" id="expenseId" value="0">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small">Date</label>
+                                <input type="date" class="form-control" id="expenseDate" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small">Transaction No.</label>
+                                <input type="text" class="form-control bg-light" id="tranNo" value="FE0000012162">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-end mb-1">
+                                <label class="form-label fw-bold text-muted small mb-0">Expense Type</label>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="btn btn-outline-primary shortcut-btn">AS01</button>
+                                    <button type="button" class="btn btn-outline-info shortcut-btn">VIP</button>
+                                    <button type="button" class="btn btn-outline-secondary shortcut-btn">L019</button>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div>
+                                    <select class="form-select mt-2" id="expenseTypeSelect">
+                                        <option value="" selected disabled>Select Expense Type...</option>
+                                        <option value="bata">Bata</option>
+                                        <option value="fuel_cash">Fuel Cash</option>
+                                        <option value="postage_others">Postage & Others</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted small">Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text fw-bold">Rs.</span>
+                                <input type="number" class="form-control" id="amount" placeholder="0.00" step="0.01" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-muted small">Remark (Direct)</label>
+                            <textarea class="form-control" id="remark" rows="3" placeholder="Enter remarks here..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted small">Document Attach</label>
+                            <input class="form-control" type="file" id="fileUpload">
+                            <button type="button" id="previewBtn" class="btn btn-sm btn-outline-primary mt-2 d-none" data-bs-toggle="modal" data-bs-target="#imagePreviewModal">
+                                <i class="bi bi-eye"></i> View Attached Image
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="status-card p-3 shadow-sm mb-4">
+                <h6 class="fw-bold text-muted mb-3">Records & Status</h6>
+
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-info text-white d-flex justify-content-between align-items-center" onclick="loadPendingList()">
+                        <span><i class="bi bi-hourglass-split"></i> Pending</span>
+                        <span class="badge bg-light text-info rounded-pill" id="pendingCount">0</span>
+                    </button>
+                    <button class="btn btn-primary text-white text-start d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-check-circle"></i> Confirmed</span>
+                        <span class="badge bg-light text-primary rounded-pill">0</span>
+                    </button>
+                    <button class="btn btn-success text-start d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-check-all"></i> Approved</span>
+                        <span class="badge bg-light text-success rounded-pill">0</span>
+                    </button>
+                    <button class="btn btn-danger text-start d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-check-all"></i> Rejected</span>
+                        <span class="badge bg-light text-danger rounded-pill">0</span>
+                    </button>
+
+                    <hr class="my-2">
+
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <button class="btn btn-outline-secondary w-100 fw-bold"><i class="bi bi-eye"></i> View</button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-outline-dark w-100 fw-bold"><i class="bi bi-list-ul"></i> All</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sticky-bottom-actions mt-2">
+        <div class="row g-2">
+            <div class="col-12 col-md-4">
+                <button type="button" class="btn btn-success w-100 fw-bold shadow-sm" onclick="saveExpense()">
+                    <i class="bi bi-floppy"></i> Save
+                </button>
+            </div>
+            <div class="col-6 col-md-4">
+                <button type="button" class="btn btn-warning w-100 fw-bold shadow-sm text-dark">
+                    <i class="bi bi-eraser"></i> Clear
+                </button>
+            </div>
+            <div class="col-6 col-md-4">
+                <a href="javascript:history.back()" class="btn btn-danger w-100 fw-bold shadow-sm">
+                    <i class="bi bi-x-circle"></i> Close
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-transparent border-0">
+                <div class="modal-header border-0 pb-0 justify-content-end">
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="background-color: white; border-radius: 50%; padding: 10px;"></button>
+                </div>
+                <div class="modal-body text-center pt-0">
+                    <img id="previewImage" src="" alt="Document Preview" class="img-fluid rounded shadow" style="max-height: 80vh; object-fit: contain;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="modal fade" id="pendingListModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-hourglass-split me-2"></i>Pending Expenses</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Tran No</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pendingTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            resetForm();
+        });
+
+        function resetForm() {
+            document.getElementById("expenseForm").reset();
+            document.getElementById("expenseId").value = "0"; // Reset to creation mode
+            document.getElementById("previewBtn").classList.add("d-none");
+            document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+        }
+
+        // Load List into Modal ---
+        async function loadPendingList() {
+            try {
+                const response = await fetch('/Expenses/GetPendingList');
+                const data = await response.json();
+
+                document.getElementById('pendingCount').innerText = data.length;
+                const tbody = document.getElementById('pendingTableBody');
+                tbody.innerHTML = '';
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No pending records found.</td></tr>';
+                } else {
+                    data.forEach(item => {
+                        const dateStr = new Date(item.expenseDate).toLocaleDateString();
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${dateStr}</td>
+                                <td><span class="badge bg-light text-dark border">${item.tranNo}</span></td>
+                                <td>${item.expenseType || '-'}</td>
+                                <td class="fw-bold">Rs. ${item.amount.toFixed(2)}</td>
+                                <td class="text-end text-nowrap">
+                                    <button class="btn btn-sm btn-primary rounded-pill px-3 me-1" onclick="loadSingleExpense(${item.id})">
+                                        Edit <i class="bi bi-pencil ms-1"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="deleteExpense(${item.id})">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                var modalEl = document.getElementById('pendingListModal');
+                var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.show();
+
+            } catch (error) {
+                console.error("Error loading list:", error);
+                alert("Failed to load pending records.");
+            }
+        }
+
+        // --- 2. Load Single Record into Form ---
+        async function loadSingleExpense(id) {
+            try {
+                const response = await fetch(`/Expenses/GetExpense/${id}`);
+                const expense = await response.json();
+
+                // Populate Form Fields
+                document.getElementById("expenseId").value = expense.id;
+                document.getElementById("expenseDate").value = expense.expenseDate.split('T')[0];
+                document.getElementById("tranNo").value = expense.tranNo;
+                document.getElementById("expenseTypeSelect").value = expense.expenseType;
+                document.getElementById("amount").value = expense.amount;
+                document.getElementById("remark").value = expense.remark;
+
+                const previewBtn = document.getElementById("previewBtn");
+                const previewImage = document.getElementById("previewImage");
+
+                if (expense.documentPath) {
+                    previewImage.src = expense.documentPath;
+                    previewBtn.classList.remove("d-none");
+                } else {
+                    previewBtn.classList.add("d-none");
+                    previewImage.src = "";
+                }
+
+                bootstrap.Modal.getInstance(document.getElementById('pendingListModal')).hide();
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            } catch (error) {
+                console.error("Error loading expense:", error);
+                alert("Failed to load the record details.");
+            }
+        }
+
+        // --- 3. Save / Update ---
+        async function saveExpense() {
+            const formData = new FormData();
+
+            formData.append("Id", document.getElementById("expenseId").value);
+            formData.append("ExpenseDate", document.getElementById("expenseDate").value);
+            formData.append("TranNo", document.getElementById("tranNo").value);
+            formData.append("ExpenseType", document.getElementById("expenseTypeSelect").value || "");
+            formData.append("Amount", document.getElementById("amount").value);
+            formData.append("Remark", document.getElementById("remark").value);
+
+            const fileInput = document.getElementById("fileUpload");
+            if (fileInput.files.length > 0) {
+                formData.append("fileUpload", fileInput.files[0]);
+            }
+
+            try {
+                const response = await fetch('/Expenses/SaveExpense', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message);
+                    resetForm();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("An error occurred while saving.");
+            }
+        }
+
+        // --- 4. Delete Record ---
+        async function deleteExpense(id) {
+            if (!confirm("Are you sure you want to delete this pending record? This cannot be undone.")) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/Expenses/DeleteExpense/${id}`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    loadPendingList();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error("Error deleting expense:", error);
+                alert("An error occurred while trying to delete.");
+            }
+        }
+
+        // Existing Image File Reader logic
+        const fileInput = document.getElementById("fileUpload");
+        fileInput.addEventListener("change", function () {
+            const file = this.files[0];
+            const previewBtn = document.getElementById("previewBtn");
+            const previewImage = document.getElementById("previewImage");
+
+            if (file && file.type.startsWith("image/")) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImage.src = e.target.result;
+                    previewBtn.classList.remove("d-none");
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewBtn.classList.add("d-none");
+                previewImage.src = "";
+            }
+        });
+    </script>
+}

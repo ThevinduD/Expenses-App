@@ -1,0 +1,280 @@
+﻿@{
+    ViewData["Title"] = "Itinerary Entry";
+}
+
+<style>
+    .modern-card {
+        border-radius: 16px;
+        border: 1px solid rgba(0,0,0,0.05);
+        background: #ffffff;
+    }
+
+    .bg-soft-light {
+        background-color: #f8fafc;
+    }
+
+    .btn-group-toggle .btn {
+        border-radius: 20px;
+        font-weight: 600;
+        padding: 0.5rem 1.5rem;
+    }
+    
+    .btn-group-toggle .btn-check:checked + .btn-outline-primary {
+        background-color: #0d6efd;
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+    }
+    
+    .btn-group-toggle .btn-check:checked + .btn-outline-danger {
+        background-color: #dc3545;
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+    }
+
+    .custom-input {
+        border-radius: 10px;
+        border-color: #e2e8f0;
+        padding: 0.75rem 1rem;
+    }
+
+    .custom-input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+
+    .section-label {
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        color: #64748b;
+    }
+</style>
+
+<div class="container-fluid pt-3 pb-5 px-3 px-md-4 bg-soft-light min-vh-100">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-1"><i class="bi bi-map text-primary"></i>Daily Itinerary</h4>
+            <p class="text-muted small mb-0">Plan your route</p>
+        </div>
+        <a href="javascript:history.back()" class="btn btn-sm btn-light border shadow-sm rounded-pill px-3 fw-bold text-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card modern-card shadow-sm mb-4">
+                <div class="card-body">
+                    <form id="itineraryForm">
+                        
+                        <div class="row g-4 mb-4 align-items-end">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold section-label text-uppercase mb-2">Date</label>
+                                <input type="date" class="form-control custom-input fw-bold" id="itineraryDate" required>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <div class="btn-group btn-group-toggle w-100" role="group">
+                                    <input type="radio" class="btn-check" name="itineraryType" id="typeWork" autocomplete="off" checked onchange="toggleItineraryMode()">
+                                    <label class="btn btn-outline-primary" for="typeWork"><i class="bi bi-briefcase me-2"></i>Work</label>
+
+                                    <input type="radio" class="btn-check" name="itineraryType" id="typeLeave" autocomplete="off" onchange="toggleItineraryMode()">
+                                    <label class="btn btn-outline-danger" for="typeLeave"><i class="bi bi-house-door me-2"></i>Leave</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="border-light my-4">
+
+                        <div id="workSection" class="mb-4">
+                            <label class="form-label fw-bold section-label text-uppercase mb-2 text-primary">Work Mode: Select Cities</label>
+                            <p class="small text-muted mb-2">Search and select a city. It will automatically be added to your list.</p>
+
+                            <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                                <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                                <input class="form-control custom-input border-start-0" list="cityOptions" id="cityInput" placeholder="Type to search cities...">
+                            </div>
+
+                            <datalist id="cityOptions">
+                                <option value="Colombo" />
+                                <option value="Kandy" />
+                                <option value="Galle" />
+                                <option value="Gampaha" />
+                                <option value="Negombo" />
+                                <option value="Kurunegala" />
+                                <option value="Jaffna" />
+                                <option value="Anuradhapura" />
+                                <option value="Ratnapura" />
+                                <option value="Badulla" />
+                            </datalist>
+
+                            <div id="selectedCitiesList" class="d-flex flex-column gap-2 mt-3"></div>
+                        </div>
+
+                        <div id="leaveSection" class="mb-4" style="display: none;">
+                            <label class="form-label fw-bold section-label text-uppercase mb-2 text-danger">Leave Mode: Select Reason</label>
+                            <select class="form-select custom-input shadow-sm" id="leaveReason">
+                                <option value="" selected disabled>Choose a reason...</option>
+                                <option value="Holiday">Public Holiday</option>
+                                <option value="Saturday">Saturday Off</option>
+                                <option value="Sunday">Sunday Off</option>
+                                
+                            </select>
+                        </div>
+
+                        <div class="mb-4 mt-2">
+                            <label class="form-label fw-bold section-label text-uppercase mb-2">Remarks</label>
+                            <textarea class="form-control custom-input bg-light" id="remarkArea" rows="4" placeholder="Selected cities or leave reasons will appear here..."></textarea>
+                        </div>
+
+                        <div class="row g-3 mt-2">
+                            <div class="col-6">
+                                <button type="button" class="btn btn-primary w-100 fw-bold shadow-sm py-2" style="border-radius: 10px;" onclick="saveItinerary()">
+                                    <i class="bi bi-check-circle me-1"></i> Save
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button type="button" class="btn btn-light border w-100 fw-bold text-secondary py-2" style="border-radius: 10px;" onclick="clearForm()">
+                                    <i class="bi bi-eraser me-1"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // DOM Elements
+        const typeWork = document.getElementById('typeWork');
+        const workSection = document.getElementById('workSection');
+        const leaveSection = document.getElementById('leaveSection');
+        const cityInput = document.getElementById('cityInput');
+        const leaveReason = document.getElementById('leaveReason');
+        const remarkArea = document.getElementById('remarkArea');
+        const selectedCitiesList = document.getElementById('selectedCitiesList');
+
+        let selectedCitiesArray = [];
+
+        // Initialize Date
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById('itineraryDate').value = new Date().toISOString().split('T')[0];
+        });
+
+        // Handle Work/Leave Toggle Logic
+        function toggleItineraryMode() {
+            if (typeWork.checked) {
+                workSection.style.display = 'block';
+                leaveSection.style.display = 'none';
+                leaveReason.value = "";
+                updateRemarks(); 
+            } else {
+                workSection.style.display = 'none';
+                leaveSection.style.display = 'block';
+                cityInput.value = "";
+                remarkArea.value = "";
+            }
+        }
+
+        // 1. Add City Logic
+        cityInput.addEventListener('change', function() {
+            const selectedCity = this.value.trim();
+
+            if (selectedCity && !selectedCitiesArray.includes(selectedCity)) {
+                selectedCitiesArray.push(selectedCity);
+                renderCityUI();
+                updateRemarks();
+            }
+            this.value = ""; 
+        });
+
+        // 2. Remove City Logic 
+        function removeCity(index) {
+            selectedCitiesArray.splice(index, 1); 
+            renderCityUI(); 
+            updateRemarks(); 
+        }
+
+        // 3. Render the visual list with Delete Buttons
+        function renderCityUI() {
+            selectedCitiesList.innerHTML = ''; 
+
+            selectedCitiesArray.forEach((city, index) => {
+                selectedCitiesList.innerHTML += `
+                    <div class="d-flex justify-content-between align-items-center bg-white border shadow-sm p-2 px-3" style="border-radius: 10px;">
+                        <span class="fw-bold text-dark"><i class="bi bi-geo-alt-fill text-primary me-2"></i>${city}</span>
+                            <button type="button" class="btn-close" aria-label="Close" onclick="removeCity(${index})"></button>
+                    </div>
+                `;
+            });
+        }
+
+        // 4. Print to Remarks
+        function updateRemarks() {
+            if (typeWork.checked) {
+                remarkArea.value = selectedCitiesArray.join('\n');
+            }
+        }
+
+        // Auto-set Leave Reason to Remarks
+        leaveReason.addEventListener('change', function() {
+            remarkArea.value = this.options[this.selectedIndex].text;
+        });
+
+        // Clear Form Function
+        function clearForm() {
+            document.getElementById('itineraryForm').reset();
+            document.getElementById('itineraryDate').value = new Date().toISOString().split('T')[0];
+
+            selectedCitiesArray = [];
+            renderCityUI();
+
+            toggleItineraryMode();
+        }
+
+        // Save Function
+        async function saveItinerary() {
+            const formData = new FormData();
+
+            // 1. Get the Date
+            formData.append("ItineraryDate", document.getElementById("itineraryDate").value);
+
+            // 2. Check which radio button is active
+            const isWork = document.getElementById("typeWork").checked;
+            formData.append("ItineraryType", isWork ? "Work" : "Leave");
+
+            // 3. Get the generated remarks (cities or leave reason)
+            const remarks = document.getElementById("remarkArea").value.trim();
+
+            // Basic validation to ensure they actually picked something
+            if (!remarks) {
+                alert("Please select at least one city or a leave reason before saving.");
+                return;
+            }
+
+            formData.append("Remark", remarks);
+
+            try {
+                const response = await fetch('/Itinerary/SaveItinerary', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message);
+                    clearForm(); // Resets everything using your existing function!
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("An error occurred while saving the itinerary.");
+            }
+        }
+    </script>
+}
