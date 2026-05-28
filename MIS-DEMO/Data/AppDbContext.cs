@@ -56,5 +56,6 @@ namespace MIS_DEMO.Data
         public DbSet<SalesRep> SALES_REP { get; set; }
         public DbSet<ExpenseMaster> ExpenseMasters { get; set; }
         public DbSet<ItineraryMaster> ItineraryMasters { get; set; }
+        public DbSet<DayCloseMaster> DayCloseMasters { get; set; }
     }
 }

@@ -84,7 +84,7 @@
                         <div class="row g-3 mb-4 align-items-center">
                             <div class="col-12">
                                 <div class="form-floating">
-                                    <input type="date" class="form-control fw-bold text-primary w-100" id="closeDate" required>
+                                    <input type="date" class="form-control fw-bold text-primary w-100" id="closeDate" required onchange="loadItinerary()">
                                     <label for="closeDate">Itinerary Date</label>
                                 </div>
                             </div>
@@ -100,18 +100,6 @@
                                     <small>Click 'View' to load areas for the selected date.</small>
                                 </div>
                                 <ul class="list-group list-group-flush d-none" id="loadedAreas">
-                                    <li class="list-group-item area-list-item bg-transparent d-flex justify-content-between align-items-center">
-                                        <div><span class="badge bg-light text-dark border me-2">C01</span> Colombo</div>
-                                        <i class="bi bi-check-circle-fill text-success"></i>
-                                    </li>
-                                    <li class="list-group-item area-list-item bg-transparent d-flex justify-content-between align-items-center">
-                                        <div><span class="badge bg-light text-dark border me-2">G03</span> Gampaha</div>
-                                        <i class="bi bi-check-circle-fill text-success"></i>
-                                    </li>
-                                    <li class="list-group-item area-list-item bg-transparent d-flex justify-content-between align-items-center">
-                                        <div><span class="badge bg-light text-dark border me-2">N05</span> Negombo</div>
-                                        <i class="bi bi-check-circle-fill text-success"></i>
-                                    </li>
                                 </ul>
                             </div>
                         </div>
@@ -197,21 +185,97 @@
         });
 
         // Simulate fetching Itinerary Data
-        function loadItinerary() {
+        // Real fetching logic
+        async function loadItinerary() {
+            const dateValue = document.getElementById('closeDate').value;
             const emptyState = document.getElementById('emptyState');
             const loadedAreas = document.getElementById('loadedAreas');
 
-            // Add a little fake loading delay for UX feel
+            // 1. Reset UI to loading state
             emptyState.innerHTML = '<div class="spinner-border text-primary spinner-border-sm" role="status"></div> <small class="ms-2">Loading areas...</small>';
+            emptyState.classList.remove('d-none');
+            loadedAreas.classList.add('d-none');
+            loadedAreas.innerHTML = ''; // Clear previous items
 
-            setTimeout(() => {
-                emptyState.classList.add('d-none');
-                loadedAreas.classList.remove('d-none');
-            }, 600); // 600ms fake delay
+            if (!dateValue) return;
+
+            try {
+                // 2. Fetch from database
+                const response = await fetch(`/DayClose/GetItineraryForDate?date=${dateValue}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    emptyState.classList.add('d-none');
+                    loadedAreas.classList.remove('d-none');
+
+                    // 3. Handle 'Leave' Mode
+                    if (result.itineraryType === "Leave") {
+                        loadedAreas.innerHTML = `
+                            <li class="list-group-item area-list-item bg-transparent d-flex justify-content-between align-items-center">
+                                <div><span class="badge bg-danger text-white border me-2">LEAVE</span> <span class="fw-bold">${result.remark}</span></div>
+                                <i class="bi bi-house-door-fill text-danger fs-5"></i>
+                            </li>
+                        `;
+                    }
+                    // 4. Handle 'Work' Mode
+                    else {
+                        // Split the remarks by line break (\n) or comma to get individual cities
+                        const cities = result.remark.split(/[\n,]+/).map(c => c.trim()).filter(c => c !== "");
+
+                        cities.forEach((city) => {
+                            loadedAreas.innerHTML += `
+                                <li class="list-group-item area-list-item bg-transparent d-flex justify-content-between align-items-center">
+                                    <div class="fw-bold text-dark"><i class="bi bi-geo-alt-fill text-primary me-2"></i> ${city}</div>
+                                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                </li>
+                            `;
+                        });
+                    }
+                } else {
+                    // 5. Handle Not Found / Error
+                    emptyState.innerHTML = `
+                        <i class="bi bi-exclamation-triangle fs-3 mb-2 d-block text-warning opacity-75"></i>
+                        <small class="text-danger fw-bold">${result.message}</small>
+                    `;
+                }
+            } catch (error) {
+                console.error("Error fetching itinerary:", error);
+                emptyState.innerHTML = '<i class="bi bi-x-circle fs-3 mb-2 d-block text-danger opacity-50"></i><small>Error loading data.</small>';
+            }
         }
 
-        function saveDayClose() {
-            alert("Day Close records ready to submit to the database!");
+        async function saveDayClose() {
+            const formData = new FormData();
+
+            // Gather all input values. Using fallback '0' for empty number fields.
+            formData.append("CloseDate", document.getElementById("closeDate").value);
+            formData.append("OfficialMileage", document.getElementById("officialMileage").value || 0);
+            formData.append("PersonalMileage", document.getElementById("personalMileage").value || 0);
+            formData.append("RealMileage", document.getElementById("realMileage").value || 0);
+            formData.append("DoctorVisits", document.getElementById("doctorVisits").value || 0);
+            formData.append("PharmacyVisits", document.getElementById("pharmacyVisits").value || 0);
+            formData.append("Remark", document.getElementById("closingRemark").value.trim());
+
+            try {
+                const response = await fetch('/DayClose/SaveDayClose', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message);
+                    // Clear the form on success
+                    document.getElementById("dayCloseForm").reset();
+                    document.getElementById('closeDate').value = new Date().toISOString().split('T')[0];
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("An error occurred while saving the Day Close record.");
+            }
         }
     </script>
 }
